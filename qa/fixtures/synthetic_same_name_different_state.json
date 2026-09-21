@@ -1,0 +1,24 @@
+{
+  "fixture_id": "synthetic_same_name_different_state",
+  "synthetic": true,
+  "purpose": "Verify that name similarity alone never passes identity resolution",
+  "target": {
+    "organization_name": "Community Hope Center",
+    "canonical_domain": "communityhope-example-mo.test",
+    "city": "Example City",
+    "state_region": "MO",
+    "phone": "(555) 010-1000"
+  },
+  "candidate": {
+    "organization_name": "Community Hope Center",
+    "canonical_domain": "communityhope-example-tx.test",
+    "city": "Other City",
+    "state_region": "TX",
+    "phone": "(555) 010-9000"
+  },
+  "expected": {
+    "match_status": "rejected",
+    "included_in_score": false,
+    "reason_contains": "different state"
+  }
+}
