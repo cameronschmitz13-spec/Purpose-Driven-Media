@@ -31,6 +31,7 @@ The following migrations have been applied:
 - `supabase/migrations/0006_dedupe_screening_sources.sql`
 - `supabase/migrations/0007_harden_screening_and_membership_writes.sql`
 - `supabase/migrations/0008_avoid_membership_policy_recursion.sql`
+- `supabase/migrations/0009_add_screening_response_persistence.sql`
 
 The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is enabled for authenticated user functions. The client sends its publishable key as `apikey` and the signed-in user's access token as `Authorization: Bearer <user-jwt>`; the function also validates the caller with `auth.getUser()` before privileged work.
 
