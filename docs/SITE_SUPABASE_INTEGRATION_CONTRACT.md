@@ -117,7 +117,16 @@ The signed-in client may read, subject to RLS:
 - sources/findings/reports belonging to those runs
 - audit events for organizations where it is an admin/owner
 
+## Screening answer persistence
+User-entered screening answers are stored in `screening_responses`.
+
+The signed-in client may upsert/delete responses for a run only while that run is not `complete` or `failed`. RLS scopes the run to the user's organization membership.
+
+Use one stable `question_key` per shared/configured question. Do not encode audience-specific layout into the database.
+
 ## Writes
+Browser code may write only user-owned/user-entered application state allowed by RLS, including `screening_responses`.
+
 Browser code should not directly write:
 - screening sources
 - screening findings
