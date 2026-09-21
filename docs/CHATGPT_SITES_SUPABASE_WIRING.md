@@ -47,12 +47,14 @@ Use the deployed authenticated Edge Function:
 
 Do not insert directly into `organizations` from an untrusted client and then try to grant ownership separately.
 
-The function verifies the JWT, creates the organization, and creates the caller's owner membership.
+The function explicitly validates the caller's Supabase Auth access token, creates the organization, and creates the caller's owner membership. It uses the modern publishable/secret key model; no service-role key is exposed to the client.
 
 ## Screening writes
 Customer-facing clients may read only what RLS permits.
 
 Source collection, scoring, provenance writes, report generation, and any privileged screening-engine operation should run through trusted server/Edge Function code rather than exposing elevated database credentials to the browser.
+
+For third-party evidence, call the deployed `evaluate-source-identity` function before any source is eligible to affect scoring. A source with `match_status` of `rejected` or `ambiguous` must have zero scoring impact.
 
 ## UX
 Do not make login a prerequisite for seeing the homepage or sample report.
