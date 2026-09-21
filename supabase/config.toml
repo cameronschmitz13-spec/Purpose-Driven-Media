@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.evaluate-source-identity]
 verify_jwt = true
+
+[functions.finalize-screening-score]
+verify_jwt = false
