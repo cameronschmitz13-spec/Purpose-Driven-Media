@@ -30,7 +30,7 @@ The following migrations have been applied:
 - `supabase/migrations/0005_extend_source_provenance.sql`
 - `supabase/migrations/0006_dedupe_screening_sources.sql`
 
-The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is disabled because modern publishable keys are not JWTs; the function explicitly validates the caller's Supabase Auth access token with `auth.getUser()` before privileged work.
+The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is enabled for authenticated user functions. The client sends its publishable key as `apikey` and the signed-in user's access token as `Authorization: Bearer <user-jwt>`; the function also validates the caller with `auth.getUser()` before privileged work.
 
 Current public application tables have RLS enabled.
 
@@ -191,3 +191,7 @@ After schema/RLS changes:
 
 ## Production email
 Before production launch, configure a production-capable SMTP/email provider for signup verification and password resets rather than relying indefinitely on a limited development sender.
+
+
+### Screening run creation
+The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
