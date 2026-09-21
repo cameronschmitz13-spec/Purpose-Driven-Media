@@ -1,0 +1,151 @@
+# PDM Site ↔ Supabase Integration Contract
+
+Use this contract when wiring the existing ChatGPT Site. Do not rebuild the Site.
+
+## Client
+Project URL:
+`https://dylgugjawlfbmtqmmzqq.supabase.co`
+
+Use the project's active modern publishable key in the browser client. Never expose a secret key.
+
+Authenticated function calls should be made with the signed-in Supabase session so the request carries:
+- `apikey: <publishable key>`
+- `Authorization: Bearer <user access token>`
+
+## Authentication
+Required production paths:
+- email/password signup
+- email verification
+- sign in
+- sign out
+- password reset
+- session restoration
+
+Do not gate the public homepage or fictional sample report behind login.
+
+## Create organization
+Function: `create-organization`
+
+Request body:
+```json
+{
+  "name": "Example Organization",
+  "organization_type": "business",
+  "website_url": "https://example.org",
+  "canonical_domain": "example.org",
+  "street_address": "123 Main St",
+  "city": "Example",
+  "state_region": "MO",
+  "postal_code": "64000",
+  "phone": "555-555-5555"
+}
+```
+
+Allowed organization types:
+- `business`
+- `nonprofit`
+- `faith_ministry`
+- `organization`
+
+Response:
+```json
+{ "organization_id": "<uuid>" }
+```
+
+## Start screening
+Function: `start-screening-run`
+
+Request body:
+```json
+{
+  "organization_id": "<uuid>",
+  "screening_type": "business",
+  "input_snapshot": {
+    "first_party_social": {},
+    "first_party_links": {}
+  }
+}
+```
+
+The function:
+- confirms the caller can read the organization through RLS
+- requires the screening type to match the configured organization type
+- selects `visibility-v1`
+- captures the canonical identity snapshot
+- creates the run as `resolving_identity`
+- records `screening_started`
+
+Do not insert or update `screening_runs` directly from browser code.
+
+## Evaluate third-party source identity
+Function: `evaluate-source-identity`
+
+Call this before a third-party candidate is allowed to influence scoring.
+
+Request body:
+```json
+{
+  "screening_run_id": "<uuid>",
+  "candidate": {
+    "source_url": "https://directory.example/page",
+    "source_type": "directory",
+    "observed_name": "Example Organization",
+    "observed_domain": "example.org",
+    "observed_address": "123 Main St",
+    "observed_city": "Example",
+    "observed_state": "MO",
+    "observed_postal_code": "64000",
+    "observed_phone": "555-555-5555"
+  }
+}
+```
+
+Decision:
+- `confirmed` → may be eligible for scoring
+- `rejected` → zero scoring impact
+- `ambiguous` → zero scoring impact until resolved
+
+The database also enforces that a finding cannot cite a rejected/ambiguous source.
+
+## Reads
+The signed-in client may read, subject to RLS:
+- its own profile
+- organizations where it has active membership
+- organization memberships it is allowed to see
+- active rubrics
+- its organizations' screening runs
+- sources/findings/reports belonging to those runs
+- audit events for organizations where it is an admin/owner
+
+## Writes
+Browser code should not directly write:
+- screening sources
+- screening findings
+- screening reports
+- screening run status/rubric/canonical identity
+
+Those belong to trusted screening-engine paths.
+
+## UX mapping
+All four audience types use one shared screening shell.
+
+Only configuration changes:
+- labels/help copy
+- sector questions
+- sector scoring rules
+- recommendation wording
+
+The Non-Profit screening remains the canonical interaction/visual reference.
+
+## Release gate
+Do not publish until:
+1. signup/verification/login/logout/reset/session restore pass
+2. create organization passes
+3. Business/Non-Profit/Ministry/Organization share the intended UX
+4. LifePoint Chillicothe positive/stale-address case passes
+5. wrong-state LifePoint case is rejected with zero score impact
+6. synthetic identity-conflict fixtures pass
+7. two-user cross-organization reads are denied
+8. saved screening/report reopen works
+9. mobile critical paths pass
+10. browser console has no release-blocking errors
