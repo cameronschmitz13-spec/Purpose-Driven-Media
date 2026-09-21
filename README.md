@@ -43,3 +43,24 @@ See `docs/AGENT_ORCHESTRATION.md` for the HuggingGPT-inspired plan â†’ select â†
 
 ## Trust rule
 Never fabricate testimonials, ratings, customer counts, revenue lifts, awards, client outcomes, or software capabilities. Fictional screening samples must be clearly labeled as fictional.
+
+
+## Sweeping screening update
+
+For the current comprehensive implementation, run:
+
+`prompts/09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md`
+
+Key supporting files:
+- `docs/UNIFIED_SCREENING_UX.md`
+- `docs/SCREENING_ACCURACY_AND_IDENTITY.md`
+- `docs/SCORING_ARCHITECTURE.md`
+- `docs/SUPABASE_AUTH_AND_DATA.md`
+- `docs/MEASUREMENT_AND_OBSERVABILITY.md`
+- `qa/fixtures/lifepoint_chillicothe_mo.json`
+- `supabase/migrations/0001_screening_schema.sql`
+- `supabase/migrations/0002_rls_and_auth_helpers.sql`
+
+The LifePoint Chillicothe identity regression is release-blocking for screening-engine changes.
+
+The live website is edited in ChatGPT Sites; repository commits do not automatically publish the Site.
