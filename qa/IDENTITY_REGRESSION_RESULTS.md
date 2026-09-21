@@ -50,3 +50,13 @@ The current identity-decision logic produces the expected decision for:
 This is not yet an end-to-end production pass.
 
 After ChatGPT Sites is wired to Supabase, run the same cases through the real screening UI/pipeline with authenticated test accounts and verify the resulting report and score.
+
+
+## Transactional scoring gate
+Backend QA also verifies:
+- a complete 13-rating Business payload at rating 4/4 finalizes to exactly 100/100
+- 13 findings are persisted for that complete rubric
+- a rejected source referenced by any scored finding causes finalization to fail
+- the failed transaction leaves no report and does not mark the run complete
+
+This protects against a rejected same-name source leaking back into the score after identity resolution.
