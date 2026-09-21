@@ -1,0 +1,54 @@
+{
+  "fixture_id": "lifepoint_chillicothe_mo",
+  "purpose": "Regression fixture for organization identity resolution and source contamination prevention",
+  "target": {
+    "organization_name": "Lifepoint Church of Chillicothe",
+    "organization_type": "faith_ministry",
+    "submitted_url": "https://lifepoint-church.com/",
+    "canonical_domain": "lifepoint-church.com",
+    "city": "Chillicothe",
+    "state_region": "MO",
+    "postal_code": "64601",
+    "primary_address": "434 Locust St, Chillicothe, MO 64601",
+    "phone": "(660) 973-2639",
+    "email": "office@lifepoint-church.com",
+    "first_party_social": {
+      "facebook": "https://www.facebook.com/lifepointchurchchillicothe",
+      "youtube": "https://www.youtube.com/@lifepointchurchchillicothe"
+    }
+  },
+  "known_first_party_facilities": [
+    {"address": "434 Locust St", "label": "Main Church"},
+    {"address": "440 Locust St", "label": "The Launch"},
+    {"address": "401 Elm St", "label": "Connection Center"},
+    {"address": "449 Elm St", "label": "Impact Center"}
+  ],
+  "known_reviewed_public_sources": [
+    "https://kchi.com/church-services/",
+    "https://www.chillicothecity.org/1246/Churches",
+    "https://www.downtownchilli.com/connections/47966-lifepoint-church",
+    "https://www.livcohealthcenter.com/about-5-1",
+    "https://www.charitynavigator.org/ein/463560828"
+  ],
+  "legacy_directional_score_reference": {
+    "reviewed_date": "2026-08-25",
+    "search_findability": 19,
+    "website_clarity": 19,
+    "visitor_readiness": 19,
+    "listing_consistency": 16,
+    "freshness_content": 18,
+    "total": 91,
+    "note": "Reference only. Do not force a new rubric to reproduce this score."
+  },
+  "must_pass": [
+    "canonical domain remains lifepoint-church.com",
+    "target location remains Chillicothe, Missouri",
+    "name-only third-party matches are insufficient",
+    "same-name LifePoint/Lifepoint organizations in another state are rejected",
+    "conflicting domain/address/phone sources are rejected or marked ambiguous",
+    "rejected and ambiguous sources contribute zero scoring impact",
+    "verified first-party identity is never overwritten by third-party data",
+    "known legitimate multi-facility addresses are not automatically treated as another organization",
+    "customer-facing report only presents evidence that passed the identity gate"
+  ]
+}
