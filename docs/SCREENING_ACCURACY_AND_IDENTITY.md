@@ -55,18 +55,31 @@ Before any third-party source can influence a finding or score, the source must 
 
 ### Hard rejection signals
 Reject the source from scoring when:
-- same/similar name but different state
+- same/similar name but different state and no verified parent/campus relationship
 - same/similar name but different city and no stronger matching identity
-- conflicting phone/address/domain
+- conflicting canonical domain plus no compensating verified identity signal
+- conflicting phone plus no compensating verified identity signal
 - source clearly refers to another branch/campus/organization and the submitted target is not that branch
 - identity remains ambiguous after reasonable verification
 
 **When uncertain, exclude rather than contaminate the report.**
 
+## Identity match vs listing consistency
+Do not confuse a stale field with a different organization.
+
+A source can still be the same organization when one field is stale or inconsistent if stronger evidence identifies the entity. Example: the Chillicothe city directory lists Lifepoint Church at 455 Locust while the official site lists 434 Locust, but the directory is in the same city/state and uses the exact verified phone number. That is evidence of a listing-consistency issue, not automatically evidence of a different church.
+
+Therefore:
+- identity resolution answers **is this the same organization?**
+- consistency scoring answers **are this organization's public facts consistent?**
+- a confirmed same-entity source may contain a stale/conflicting address, phone, hours, or other field
+- preserve that conflicting value as a finding; do not overwrite the canonical first-party value
+- different-state same-name sources remain rejected unless an explicit verified campus/parent relationship makes them relevant
+
 ## Matching policy
 A third-party source should be included only when:
-- there is one strong identity signal, OR
-- there are at least two supporting signals with no hard conflict.
+- there is one strong identity signal with no decisive entity conflict, OR
+- there are at least two supporting signals with no decisive entity conflict.
 
 Name-only match is never sufficient.
 
