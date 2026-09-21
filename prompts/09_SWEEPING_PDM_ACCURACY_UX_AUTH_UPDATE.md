@@ -191,6 +191,8 @@ For every run:
 
 2. Every third-party candidate must pass the identity gate.
 
+The backend now includes the deployed authenticated `evaluate-source-identity` Edge Function. Wire the actual screening pipeline through it (or an equivalently strict trusted-server path); do not recreate a weaker client-only matcher.
+
 Include if:
 - exact domain/address/phone/verified profile match,
 OR
@@ -283,9 +285,11 @@ Supabase is now provisioned:
 - Project ref: `dylgugjawlfbmtqmmzqq`
 - Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
 - Region: `us-east-2`
-- Database/RLS migrations 0001–0004 are deployed.
+- Database/RLS/provenance migrations 0001–0006 are deployed.
 - `visibility-v1` rubrics are seeded.
 - The authenticated `create-organization` Edge Function is deployed.
+- The authenticated `evaluate-source-identity` Edge Function is deployed.
+- Both functions explicitly validate Supabase Auth user tokens and use the modern publishable/secret key model.
 - Current Supabase security advisor result is clean.
 
 Wire the existing ChatGPT Site to this project using the active modern publishable key and the rules in `docs/CHATGPT_SITES_SUPABASE_WIRING.md`.
