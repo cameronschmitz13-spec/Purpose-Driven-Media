@@ -77,7 +77,7 @@ The authenticated `start-screening-run` Edge Function creates immutable-at-start
 
 
 ## Backend verification completed
-- all 9 public application tables have RLS enabled
+- all 10 public application tables have RLS enabled
 - screening engine tables expose SELECT-only RLS policies to authenticated clients
 - direct browser insert/update policies on `screening_runs` were removed
 - rejected/ambiguous source scoring constraint tested
