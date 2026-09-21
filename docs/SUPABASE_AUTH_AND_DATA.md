@@ -8,29 +8,34 @@ The PDM application must not store or manage plaintext passwords.
 Supabase Auth owns credentials and sessions. PDM stores application profile, organization membership, screening, and report data in Postgres.
 
 ## Current provisioning state
-As of 2026-09-20:
-- one Supabase organization is visible in the connected account
-- no Supabase project exists yet for PDM
+As of 2026-09-20, the PDM Supabase project is provisioned and healthy.
 
-Do not silently substitute another auth system.
+- Project name: `Purpose Driven Media`
+- Project ref: `dylgugjawlfbmtqmmzqq`
+- Region: `us-east-2`
+- API URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
+- Project cost confirmed at creation: $0/month
 
-Before project creation:
-- owner must confirm which Supabase organization to use
-- retrieve the current project cost for that organization
-- obtain the required explicit cost confirmation
-- then create/connect the PDM project
+Do not commit secret/service-role keys to GitHub.
 
-Non-auth website/UX work may proceed while provisioning is pending.
+Use the active modern publishable key through the site's environment/configuration when wiring the client.
 
-## Prepared migrations
-The repository contains a proposed initial schema and RLS implementation:
+## Deployed database foundation
+The following migrations have been applied:
 
 - `supabase/migrations/0001_screening_schema.sql`
 - `supabase/migrations/0002_rls_and_auth_helpers.sql`
+- `supabase/migrations/0003_harden_function_privileges.sql`
 
-These are prepared for review/application after a PDM Supabase project exists.
+The authenticated `create-organization` Edge Function is also deployed with JWT verification enabled.
 
-Do not claim they are deployed until they have actually been applied and the Supabase security advisors and cross-organization access tests pass.
+Current public application tables have RLS enabled.
+
+The Supabase security advisor reports no current security lints after hardening.
+
+Performance currently reports only expected unused-index informational notices because the new database has no production traffic yet.
+
+Cross-organization isolation still requires end-to-end testing with real/test authenticated users before production auth is declared fully verified.
 
 ## Auth scope
 Initial production auth should support:
