@@ -22,6 +22,17 @@ function cleanOptional(value: unknown, max = 500): string | null {
   return v ? v.slice(0, max) : null;
 }
 
+function normalizeDomain(value: unknown): string | null {
+  let raw = cleanOptional(value, 500);
+  if (!raw) return null;
+  try {
+    if (!/^https?:\/\//i.test(raw)) raw = "https://" + raw;
+    return new URL(raw).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return raw.toLowerCase().replace(/^www\./, "").split("/")[0] || null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -69,9 +80,12 @@ Deno.serve(async (req: Request) => {
       normalized_name: name.toLowerCase(),
       organization_type: organizationType,
       website_url: cleanOptional(body.website_url),
-      canonical_domain: cleanOptional(body.canonical_domain, 255)?.toLowerCase() ?? null,
+      canonical_domain: normalizeDomain(body.canonical_domain ?? body.website_url),
+      street_address: cleanOptional(body.street_address, 255),
       city: cleanOptional(body.city, 120),
       state_region: cleanOptional(body.state_region, 120),
+      postal_code: cleanOptional(body.postal_code, 30),
+      phone: cleanOptional(body.phone, 50),
     })
     .select("id")
     .single();
