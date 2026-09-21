@@ -74,3 +74,30 @@ Do not publish the screening-engine/auth update until:
 
 ### Screening run creation
 The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
+
+
+## Backend verification completed
+- all 9 public application tables have RLS enabled
+- screening engine tables expose SELECT-only RLS policies to authenticated clients
+- direct browser insert/update policies on `screening_runs` were removed
+- rejected/ambiguous source scoring constraint tested
+- finding-to-source scoring gate tested
+- finding score range constraint tested
+- source dedupe index present
+- `visibility-v1` rubrics present
+- Supabase security advisor returns no security lints
+- authenticated Edge Functions active: `create-organization`, `start-screening-run`, `evaluate-source-identity`
+- all authenticated Edge Functions currently use `verify_jwt=true` and also validate the user token in-handler
+- generated TypeScript database types committed at `supabase/database.types.ts`
+- reproducible backend checks committed at `qa/backend_security_checks.sql`
+
+Still pending before release:
+- live ChatGPT Sites visual inspection/editing
+- Site client configuration with project URL + publishable key
+- production Auth redirect/email configuration
+- real signup/verification/login/logout/reset/session restore
+- two-user cross-organization isolation test
+- full screening engine scoring/report-generation integration
+- all four live screening UX paths
+- LifePoint regression through the actual Site
+- mobile/browser/SEO/analytics QA
