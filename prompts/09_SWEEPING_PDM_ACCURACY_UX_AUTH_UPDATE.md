@@ -17,6 +17,8 @@ You are working on the existing Purpose Driven Media site and screening product.
 12. `docs/SCORING_ARCHITECTURE.md`
 13. `qa/fixtures/lifepoint_chillicothe_mo.json`
 14. `docs/CHATGPT_SITES_SUPABASE_WIRING.md`
+15. `docs/SITE_SUPABASE_INTEGRATION_CONTRACT.md`
+16. `supabase/database.types.ts`
 
 Do not load unrelated repo history unless needed.
 
@@ -285,10 +287,11 @@ Supabase is now provisioned:
 - Project ref: `dylgugjawlfbmtqmmzqq`
 - Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
 - Region: `us-east-2`
-- Database/RLS/provenance migrations 0001–0006 are deployed.
+- Database/RLS/provenance/security migrations 0001–0008 are deployed.
 - `visibility-v1` rubrics are seeded.
 - The authenticated `create-organization` Edge Function is deployed.
 - The authenticated `evaluate-source-identity` Edge Function is deployed.
+- The authenticated `start-screening-run` Edge Function is deployed.
 - Both functions explicitly validate Supabase Auth user tokens and use the modern publishable/secret key model.
 - Current Supabase security advisor result is clean.
 
