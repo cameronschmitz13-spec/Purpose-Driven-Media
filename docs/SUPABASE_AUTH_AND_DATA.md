@@ -27,9 +27,11 @@ The following migrations have been applied:
 - `supabase/migrations/0002_rls_and_auth_helpers.sql`
 - `supabase/migrations/0003_harden_function_privileges.sql`
 
-The authenticated `create-organization` Edge Function is also deployed with JWT verification enabled.
+The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is disabled because modern publishable keys are not JWTs; the function explicitly validates the caller's Supabase Auth access token with `auth.getUser()` before privileged work.
 
 Current public application tables have RLS enabled.
+
+The authenticated `evaluate-source-identity` Edge Function is also deployed. It applies the entity gate, persists provenance/match decisions, and prevents rejected/ambiguous sources from being marked as scoring evidence.
 
 The Supabase security advisor reports no current security lints after hardening.
 
