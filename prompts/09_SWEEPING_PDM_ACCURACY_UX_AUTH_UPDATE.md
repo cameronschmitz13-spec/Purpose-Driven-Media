@@ -287,11 +287,12 @@ Supabase is now provisioned:
 - Project ref: `dylgugjawlfbmtqmmzqq`
 - Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
 - Region: `us-east-2`
-- Database/RLS/provenance/security migrations 0001–0009 are deployed.
+- Database/RLS/provenance/security migrations 0001–0011 are deployed.
 - `visibility-v1` rubrics are seeded.
 - The authenticated `create-organization` Edge Function is deployed.
 - The authenticated `evaluate-source-identity` Edge Function is deployed.
 - The authenticated `start-screening-run` Edge Function is deployed.
+- The service-only `finalize-screening-score` Edge Function is deployed; never call it from browser code or expose a secret key.
 - Both functions explicitly validate Supabase Auth user tokens and use the modern publishable/secret key model.
 - Current Supabase security advisor result is clean.
 
