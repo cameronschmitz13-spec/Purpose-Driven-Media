@@ -100,3 +100,32 @@ The same report shell should render every sector.
 
 ## Accuracy over benchmarking
 For metrics without a defensible sector benchmark, baseline the organization's own performance and measure improvement over time rather than inventing a universal target.
+
+
+## Weighted normalization
+
+For `visibility-v1`, each scored category/area receives a rating from 0 through 4.
+
+Convert the rating to points with:
+
+`points = (rating / 4) × weight`
+
+Round display/report points to two decimal places.
+
+Universal categories each carry 10 points:
+- 0 → 0
+- 1 → 2.5
+- 2 → 5
+- 3 → 7.5
+- 4 → 10
+
+Each of the six sector areas carries 5 points:
+- 0 → 0
+- 1 → 1.25
+- 2 → 2.5
+- 3 → 3.75
+- 4 → 5
+
+The seven universal categories total 70 points. The six sector areas total 30 points.
+
+A critical visibility leak is an explicit report flag. It does not silently rewrite the mathematical total. The report must show both the calculated score and the critical issue so a high average cannot hide a broken contact/booking/donation path, wrong identity information, materially expired information, mobile failure, or major security problem.
