@@ -16,6 +16,7 @@ You are working on the existing Purpose Driven Media site and screening product.
 11. `docs/MEASUREMENT_AND_OBSERVABILITY.md`
 12. `docs/SCORING_ARCHITECTURE.md`
 13. `qa/fixtures/lifepoint_chillicothe_mo.json`
+14. `docs/CHATGPT_SITES_SUPABASE_WIRING.md`
 
 Do not load unrelated repo history unless needed.
 
@@ -278,11 +279,18 @@ Never expose service-role/secret keys in the browser.
 
 Use a publishable frontend key and secure server-side secrets.
 
-If no Supabase project exists:
-- do not silently use another auth provider,
-- identify the required Supabase organization,
-- obtain cost confirmation before project creation,
-- continue non-blocked UX/CRO work while provisioning waits.
+Supabase is now provisioned:
+- Project ref: `dylgugjawlfbmtqmmzqq`
+- Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
+- Region: `us-east-2`
+- Database/RLS migrations 0001–0004 are deployed.
+- `visibility-v1` rubrics are seeded.
+- The authenticated `create-organization` Edge Function is deployed.
+- Current Supabase security advisor result is clean.
+
+Wire the existing ChatGPT Site to this project using the active modern publishable key and the rules in `docs/CHATGPT_SITES_SUPABASE_WIRING.md`.
+
+Never expose a service-role/secret key.
 
 Run Supabase security advisors after schema/RLS work.
 
