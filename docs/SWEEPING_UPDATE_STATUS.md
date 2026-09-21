@@ -9,7 +9,7 @@ The PDM Supabase backend is now provisioned and healthy.
 - RLS enabled on all PDM application tables
 - Security advisor: clean after hardening
 - Auth profile trigger: deployed
-- Authenticated `create-organization` Edge Function: deployed with explicit user-token validation using modern publishable/secret keys
+- Authenticated `create-organization` Edge Function: deployed with `verify_jwt=true` plus explicit user-token validation using modern publishable/secret keys
 - `visibility-v1` rubrics seeded for universal, business, nonprofit, faith/ministry, and general organization
 - `evaluate-source-identity` Edge Function deployed
 - source provenance extended with observed domain/address/postal/phone, conflicts, and same-entity field differences
@@ -70,3 +70,7 @@ Do not publish the screening-engine/auth update until:
 
 ## Canonical Work instruction
 `Open Purpose-Driven-Media, read AGENTS.md, then execute prompts/09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md. Continue through implementation and QA. Use the already-provisioned Supabase project. Do not publish while any release blocker is failing.`
+
+
+### Screening run creation
+The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
