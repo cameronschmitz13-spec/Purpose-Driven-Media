@@ -18,10 +18,22 @@
     }
   },
   "known_first_party_facilities": [
-    {"address": "434 Locust St", "label": "Main Church"},
-    {"address": "440 Locust St", "label": "The Launch"},
-    {"address": "401 Elm St", "label": "Connection Center"},
-    {"address": "449 Elm St", "label": "Impact Center"}
+    {
+      "address": "434 Locust St",
+      "label": "Main Church"
+    },
+    {
+      "address": "440 Locust St",
+      "label": "The Launch"
+    },
+    {
+      "address": "401 Elm St",
+      "label": "Connection Center"
+    },
+    {
+      "address": "449 Elm St",
+      "label": "Impact Center"
+    }
   ],
   "known_reviewed_public_sources": [
     "https://kchi.com/church-services/",
@@ -49,6 +61,32 @@
     "rejected and ambiguous sources contribute zero scoring impact",
     "verified first-party identity is never overwritten by third-party data",
     "known legitimate multi-facility addresses are not automatically treated as another organization",
-    "customer-facing report only presents evidence that passed the identity gate"
+    "customer-facing report only presents evidence that passed the identity gate",
+    "same-entity stale directory fields are retained as consistency findings rather than mistaken for another organization"
+  ],
+  "regression_candidates": [
+    {
+      "source_url": "https://www.chillicothecity.org/1246/Churches",
+      "observed_name": "Lifepoint Church",
+      "observed_address": "455 Locust Street",
+      "observed_city": "Chillicothe",
+      "observed_state": "MO",
+      "observed_phone": "660-973-2639",
+      "expected_match_status": "confirmed",
+      "expected_included_in_score": true,
+      "expected_consistency_finding": "address differs from canonical first-party address; treat as listing inconsistency, not a different organization"
+    },
+    {
+      "source_url": "https://lifepointchurch.org/",
+      "observed_name": "LifePoint Church",
+      "observed_address": "506 Legacy Dr",
+      "observed_city": "Smyrna",
+      "observed_state": "TN",
+      "observed_phone": "615-459-3311",
+      "observed_domain": "lifepointchurch.org",
+      "expected_match_status": "rejected",
+      "expected_included_in_score": false,
+      "expected_reason": "same/similar name but different state, domain, phone, and location"
+    }
   ]
 }
