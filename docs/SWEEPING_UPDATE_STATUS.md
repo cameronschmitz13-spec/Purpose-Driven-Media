@@ -9,8 +9,11 @@ The PDM Supabase backend is now provisioned and healthy.
 - RLS enabled on all PDM application tables
 - Security advisor: clean after hardening
 - Auth profile trigger: deployed
-- Authenticated `create-organization` Edge Function: deployed with JWT verification
+- Authenticated `create-organization` Edge Function: deployed with explicit user-token validation using modern publishable/secret keys
 - `visibility-v1` rubrics seeded for universal, business, nonprofit, faith/ministry, and general organization
+- `evaluate-source-identity` Edge Function deployed
+- source provenance extended with observed domain/address/postal/phone, conflicts, and same-entity field differences
+- duplicate source URLs prevented per screening run
 - GitHub migrations and deployed function source are synchronized
 
 Performance advisor currently reports only unused-index informational notices, expected before production traffic.
