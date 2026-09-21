@@ -278,6 +278,41 @@ export type Database = {
           },
         ]
       }
+      screening_responses: {
+        Row: {
+          created_at: string
+          id: string
+          question_key: string
+          response: Json
+          screening_run_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_key: string
+          response?: Json
+          screening_run_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_key?: string
+          response?: Json
+          screening_run_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_responses_screening_run_id_fkey"
+            columns: ["screening_run_id"]
+            isOneToOne: false
+            referencedRelation: "screening_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screening_runs: {
         Row: {
           canonical_identity_snapshot: Json
