@@ -101,3 +101,5 @@ Still pending before release:
 - all four live screening UX paths
 - LifePoint regression through the actual Site
 - mobile/browser/SEO/analytics QA
+
+- RLS-scoped `screening_responses` persistence is deployed for save/resume of user-entered screening answers.
