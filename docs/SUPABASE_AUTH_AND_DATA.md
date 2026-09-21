@@ -26,6 +26,9 @@ The following migrations have been applied:
 - `supabase/migrations/0001_screening_schema.sql`
 - `supabase/migrations/0002_rls_and_auth_helpers.sql`
 - `supabase/migrations/0003_harden_function_privileges.sql`
+- `supabase/migrations/0004_seed_visibility_v1_rubrics.sql`
+- `supabase/migrations/0005_extend_source_provenance.sql`
+- `supabase/migrations/0006_dedupe_screening_sources.sql`
 
 The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is disabled because modern publishable keys are not JWTs; the function explicitly validates the caller's Supabase Auth access token with `auth.getUser()` before privileged work.
 
