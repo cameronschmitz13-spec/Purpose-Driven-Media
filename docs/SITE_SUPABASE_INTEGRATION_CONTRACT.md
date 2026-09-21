@@ -158,3 +158,24 @@ Do not publish until:
 8. saved screening/report reopen works
 9. mobile critical paths pass
 10. browser console has no release-blocking errors
+
+
+## Trusted score finalization
+Function: `finalize-screening-score`
+
+This endpoint is **service-to-service only**. It requires a Supabase secret key in the `apikey` header and is deployed with `verify_jwt=false` because the function uses secret-key authentication rather than a user JWT.
+
+Never call it from browser code and never place a Supabase secret key in ChatGPT Site client code.
+
+The trusted screening evaluator supplies all 13 rubric ratings:
+- 7 universal ratings, each 0–4 and worth 10 points after normalization
+- 6 sector ratings, each 0–4 and worth 5 points after normalization
+
+Formula:
+`points = (rating / 4) × weight`
+
+The database RPC finalizes the score transactionally, writes the 13 findings, writes the immutable report snapshot, marks the run complete, and records the completion audit event.
+
+If a rating cites a `source_id`, the database trigger rejects it unless that source belongs to the same run and is `confirmed` + `included_in_score=true`.
+
+Critical visibility leaks are stored as explicit report flags; they do not silently rewrite the mathematical total.
