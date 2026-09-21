@@ -122,16 +122,26 @@ If a rubric changes:
 - historical reports remain attached to the version used at the time
 
 ## Regression case: LifePoint / Lifepoint
-Create an automated/manual QA fixture from the actual LifePoint screening that previously mixed another-state church information.
 
-Do not guess which LifePoint is correct.
+Canonical regression fixture:
+`qa/fixtures/lifepoint_chillicothe_mo.json`
 
-The test must start from the exact submitted screening URL and location, then verify:
+Verified submitted target:
+- Organization: Lifepoint Church of Chillicothe
+- Official website: `https://lifepoint-church.com/`
+- Primary worship address: `434 Locust St, Chillicothe, MO 64601`
+- Phone: `(660) 973-2639`
+- Email: `office@lifepoint-church.com`
+
+Known first-party facility footprint includes 434 Locust (Main Church), 440 Locust (The Launch), 401 Elm (Connection Center), and 449 Elm (Impact Center). Those legitimate multi-facility addresses must not be confused with a different organization.
+
+The regression test must verify:
 - canonical domain is preserved
 - city/state match the submitted target
 - any same-name church in another state is rejected
 - rejected sources do not affect scores
 - report only displays evidence belonging to the intended organization
+- known legitimate Lifepoint Chillicothe facilities are handled as facilities, not automatically rejected
 - source links and location are inspectable during QA
 
 Add at least two more same-name-organization regression fixtures.
