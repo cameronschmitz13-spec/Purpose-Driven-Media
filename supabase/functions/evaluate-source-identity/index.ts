@@ -133,6 +133,7 @@ Deno.serve(async (req: Request) => {
   if (tCity && cCity && tCity !== cCity) conflicts.push("different_city");
   if (targetDomain && candidateDomain && targetDomain !== candidateDomain) conflicts.push("different_domain");
   if (tPhone && cPhone && tPhone !== cPhone) conflicts.push("different_phone");
+  if (tAddress && cAddress && tAddress !== cAddress) conflicts.push("different_address");
 
   if (tAddress && cAddress && tAddress !== cAddress) differences.address = { canonical: text(target.primary_address), observed: text(candidate.observed_address) };
   if (tPhone && cPhone && tPhone !== cPhone) differences.phone = { canonical: text(target.phone), observed: text(candidate.observed_phone) };
@@ -146,6 +147,8 @@ Deno.serve(async (req: Request) => {
   const cityConflict = conflicts.includes("different_city");
   const strongCount = new Set(strong).size;
   const supportCount = new Set(supporting).size;
+  const strongFieldConflictCount = ["different_domain", "different_phone", "different_address"]
+    .filter((key) => conflicts.includes(key)).length;
 
   if (stateConflict) {
     if (strongCount >= 2) {
@@ -161,6 +164,12 @@ Deno.serve(async (req: Request) => {
   } else if (strongCount >= 1) {
     status = "confirmed"; confidence = strongCount >= 2 ? 0.99 : 0.96;
     reason = "confirmed by strong identity signal";
+  } else if (strongFieldConflictCount >= 2) {
+    status = "rejected"; confidence = 0.95;
+    reason = "multiple strong identity fields conflict with the canonical organization";
+  } else if (strongFieldConflictCount === 1) {
+    status = "ambiguous"; confidence = 0.65;
+    reason = "supporting identity signals exist but a strong identity field conflicts";
   } else if (supportCount >= 2) {
     status = "confirmed"; confidence = supportCount >= 3 ? 0.9 : 0.82;
     reason = "confirmed by multiple supporting identity signals with no decisive conflict";
