@@ -103,3 +103,5 @@ Still pending before release:
 - mobile/browser/SEO/analytics QA
 
 - RLS-scoped `screening_responses` persistence is deployed for save/resume of user-entered screening answers.
+
+- transactional score finalizer tested at 100/100 with 13 required findings; service-only Edge Function deployed
