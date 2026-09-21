@@ -1,0 +1,26 @@
+{
+  "fixture_id": "synthetic_conflicting_identity",
+  "synthetic": true,
+  "purpose": "Verify that a similar name and city cannot override conflicting strong identity signals",
+  "target": {
+    "organization_name": "River Valley Services",
+    "canonical_domain": "rivervalley-a.test",
+    "city": "Example City",
+    "state_region": "MO",
+    "phone": "(555) 010-2000",
+    "street_address": "100 Main St"
+  },
+  "candidate": {
+    "organization_name": "River Valley Service",
+    "canonical_domain": "rivervalley-b.test",
+    "city": "Example City",
+    "state_region": "MO",
+    "phone": "(555) 010-2999",
+    "street_address": "900 Market St"
+  },
+  "expected": {
+    "match_status": "rejected",
+    "included_in_score": false,
+    "reason_contains": "conflicting domain/address/phone"
+  }
+}
