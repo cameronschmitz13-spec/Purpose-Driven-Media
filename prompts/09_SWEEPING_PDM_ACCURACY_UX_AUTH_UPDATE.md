@@ -13,6 +13,7 @@ You are working on the existing Purpose Driven Media site and screening product.
 8. `docs/SUPABASE_AUTH_AND_DATA.md`
 9. `docs/IMPLEMENTATION_SKILLS.md`
 10. `docs/CHATGPT_SITES_IMPLEMENTATION.md`
+11. `docs/MEASUREMENT_AND_OBSERVABILITY.md`
 
 Do not load unrelated repo history unless needed.
 
@@ -343,6 +344,27 @@ Do not create thin keyword pages.
 
 ---
 
+# PHASE 9.5 — MEASUREMENT + OBSERVABILITY
+
+Preserve existing analytics where working and add only the minimum events needed to understand the funnel and diagnose screening failures.
+
+Track:
+- homepage primary CTA
+- sample report
+- screening start
+- identity resolved
+- screening completion
+- report viewed
+- signup completion
+- login completion
+- saved-report reopen
+
+For internal accuracy telemetry, record source confirmed/rejected/ambiguous and pipeline failures without logging passwords, tokens, secret keys, or unnecessary PII.
+
+Ensure events do not double-fire.
+
+---
+
 # PHASE 10 — REQUIRED QA BEFORE PUBLISH
 
 Run the same test matrix for:
@@ -427,8 +449,9 @@ Return a concise implementation report containing:
 8. RLS/security results
 9. SEO changes
 10. Mobile/accessibility results
-11. Tests passed/failed
-12. Anything blocked and exact reason
-13. Anything requiring owner confirmation
+11. Measurement/observability changes
+12. Tests passed/failed
+13. Anything blocked and exact reason
+14. Anything requiring owner confirmation
 
 Do not claim a fix is complete without verifying it.
