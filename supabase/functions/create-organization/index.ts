@@ -26,19 +26,24 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return json({ error: "Authentication required" }, 401);
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) return json({ error: "Authentication required" }, 401);
+  const token = authHeader.slice(7);
 
   const url = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !serviceKey) return json({ error: "Server configuration error" }, 500);
+  const publishableMap = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
+  const secretMap = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+  const publishableKey = publishableMap.default;
+  const secretKey = secretMap.default;
 
-  const admin = createClient(url, serviceKey, {
+  if (!url || !publishableKey || !secretKey) return json({ error: "Server configuration error" }, 500);
+
+  const userClient = createClient(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: authHeader } },
   });
 
-  const jwt = authHeader.slice("Bearer ".length);
-  const { data: userData, error: userError } = await admin.auth.getUser(jwt);
+  const { data: userData, error: userError } = await userClient.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user) return json({ error: "Invalid session" }, 401);
 
@@ -52,6 +57,10 @@ Deno.serve(async (req: Request) => {
   if (!organizationType || !allowedTypes.has(organizationType)) {
     return json({ error: "Invalid organization type" }, 400);
   }
+
+  const admin = createClient(url, secretKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const { data: org, error: orgError } = await admin
     .from("organizations")
@@ -80,6 +89,13 @@ Deno.serve(async (req: Request) => {
     await admin.from("organizations").delete().eq("id", org.id);
     return json({ error: "Could not create organization membership" }, 500);
   }
+
+  await admin.from("audit_events").insert({
+    actor_user_id: user.id,
+    organization_id: org.id,
+    event_type: "organization_created",
+    payload: { organization_type: organizationType },
+  });
 
   return json({ organization_id: org.id }, 201);
 });
