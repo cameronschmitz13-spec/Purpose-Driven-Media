@@ -8,17 +8,29 @@ The PDM application must not store or manage plaintext passwords.
 Supabase Auth owns credentials and sessions. PDM stores application profile, organization membership, screening, and report data in Postgres.
 
 ## Current provisioning state
-As of 2026-09-20, no Supabase project is currently visible through the connected Supabase account.
+As of 2026-09-20:
+- one Supabase organization is visible in the connected account
+- no Supabase project exists yet for PDM
 
 Do not silently substitute another auth system.
 
-If implementation reaches project provisioning:
-- identify the correct Supabase organization
-- check current project cost
-- obtain the required cost confirmation
+Before project creation:
+- owner must confirm which Supabase organization to use
+- retrieve the current project cost for that organization
+- obtain the required explicit cost confirmation
 - then create/connect the PDM project
 
 Non-auth website/UX work may proceed while provisioning is pending.
+
+## Prepared migrations
+The repository contains a proposed initial schema and RLS implementation:
+
+- `supabase/migrations/0001_screening_schema.sql`
+- `supabase/migrations/0002_rls_and_auth_helpers.sql`
+
+These are prepared for review/application after a PDM Supabase project exists.
+
+Do not claim they are deployed until they have actually been applied and the Supabase security advisors and cross-organization access tests pass.
 
 ## Auth scope
 Initial production auth should support:
