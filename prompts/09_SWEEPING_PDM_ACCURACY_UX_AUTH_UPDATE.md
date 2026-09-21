@@ -287,7 +287,7 @@ Supabase is now provisioned:
 - Project ref: `dylgugjawlfbmtqmmzqq`
 - Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
 - Region: `us-east-2`
-- Database/RLS/provenance/security migrations 0001–0008 are deployed.
+- Database/RLS/provenance/security migrations 0001–0009 are deployed.
 - `visibility-v1` rubrics are seeded.
 - The authenticated `create-organization` Edge Function is deployed.
 - The authenticated `evaluate-source-identity` Edge Function is deployed.
