@@ -1,48 +1,65 @@
 # Sweeping PDM Update — Implementation Status
 
-## Ready
-The repository now defines:
+## Completed backend foundation
+The PDM Supabase backend is now provisioned and healthy.
+
+- Project ref: `dylgugjawlfbmtqmmzqq`
+- Region: `us-east-2`
+- Project URL: `https://dylgugjawlfbmtqmmzqq.supabase.co`
+- RLS enabled on all PDM application tables
+- Security advisor: clean after hardening
+- Auth profile trigger: deployed
+- Authenticated `create-organization` Edge Function: deployed with JWT verification
+- `visibility-v1` rubrics seeded for universal, business, nonprofit, faith/ministry, and general organization
+- GitHub migrations and deployed function source are synchronized
+
+Performance advisor currently reports only unused-index informational notices, expected before production traffic.
+
+## Completed architecture
+The repository defines:
 - homepage CRO direction
 - PDM brand rules
 - unified screening UX
 - organization identity/source provenance gate
 - exact LifePoint Chillicothe regression fixture
+- two synthetic identity-conflict regression fixtures
 - canonical 70/30 scoring architecture
 - Supabase Auth/data architecture
 - RLS requirements
 - measurement/observability
 - SEO baseline
+- ChatGPT Sites → Supabase wiring rules
 - usage-efficient skill routing
 
-## Live-site implementation dependency
+## Next live-site implementation
 The production editing surface is ChatGPT Sites.
 
 Repository commits do not automatically modify the live ChatGPT Site.
 
-The implementation run must use ChatGPT Work / Cloud Browser with access to the existing PDM Site in order to:
-- inspect the actual current UI
-- identify shared/duplicated screening components
-- edit the Site
-- compare Business vs Non-Profit screens
-- exercise screening flows
-- inspect browser errors
-- publish after QA
+Run the next implementation in ChatGPT Work / Cloud Browser with access to the existing PDM Site.
 
-## Supabase provisioning dependency
-A Supabase organization is connected, but no project currently exists.
+Work should:
+1. inspect the existing Site before editing
+2. compare all screening types against the Non-Profit reference
+3. wire Supabase Auth and session handling
+4. wire organization membership and saved screening/report ownership
+5. normalize all screening UX through one shared system/configuration
+6. implement the identity gate in the actual screening pipeline
+7. use the seeded `visibility-v1` rubric architecture
+8. run the LifePoint regression
+9. run cross-organization auth isolation tests
+10. verify desktop/mobile/SEO/analytics
+11. publish only after release blockers pass
 
-Do not create a project until the owner confirms:
-- which Supabase organization to use
-- the current project cost after it is retrieved
+## Release blockers
+Do not publish the screening-engine/auth update until:
+- LifePoint wrong-organization contamination is eliminated
+- rejected/ambiguous sources have zero scoring impact
+- Business/Non-Profit/Ministry/Organization share the intended UX
+- signup/login/logout/reset/session restore work
+- authenticated organization ownership works
+- cross-organization access is denied
+- mobile critical paths pass
 
-Once confirmed:
-1. retrieve current project cost
-2. obtain explicit cost confirmation
-3. create the PDM project
-4. apply schema/RLS migrations
-5. configure Auth
-6. run security/performance advisors
-7. test cross-organization isolation
-
-## Release blocker
-Do not publish the screening-engine update until the LifePoint identity regression passes.
+## Canonical Work instruction
+`Open Purpose-Driven-Media, read AGENTS.md, then execute prompts/09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md. Continue through implementation and QA. Use the already-provisioned Supabase project. Do not publish while any release blocker is failing.`
