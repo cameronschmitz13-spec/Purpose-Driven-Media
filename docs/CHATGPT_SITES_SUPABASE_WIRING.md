@@ -77,3 +77,7 @@ Before enabling production account saving:
 - signed-out user cannot access protected data
 - saved screening reopens for authorized user
 - LifePoint regression passes
+
+
+### Screening run creation
+The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
