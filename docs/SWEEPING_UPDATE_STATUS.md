@@ -39,6 +39,10 @@ The production editing surface is ChatGPT Sites.
 
 Repository commits do not automatically modify the live ChatGPT Site.
 
+Current normal-chat tooling does not expose the ChatGPT Sites editor/Cloud Browser. A direct public fetch of `https://purposedrivenmedia.group/` also did not return the Site in this execution environment, so no claim is made that the current live homepage or screening UI has been visually inspected or edited in this run.
+
+The remaining production UI work must be executed in a Work session that exposes the existing ChatGPT Site.
+
 Run the next implementation in ChatGPT Work / Cloud Browser with access to the existing PDM Site.
 
 Work should:
