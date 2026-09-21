@@ -14,6 +14,8 @@ You are working on the existing Purpose Driven Media site and screening product.
 9. `docs/IMPLEMENTATION_SKILLS.md`
 10. `docs/CHATGPT_SITES_IMPLEMENTATION.md`
 11. `docs/MEASUREMENT_AND_OBSERVABILITY.md`
+12. `docs/SCORING_ARCHITECTURE.md`
+13. `qa/fixtures/lifepoint_chillicothe_mo.json`
 
 Do not load unrelated repo history unless needed.
 
@@ -208,9 +210,10 @@ Name-only match is NEVER sufficient.
 
 5. Never overwrite verified first-party identity with third-party data.
 
-6. Create a regression test from the ACTUAL submitted LifePoint screening target.
-   Do not guess the location.
-   Verify that the wrong-state LifePoint source is rejected and contributes zero scoring impact.
+6. Use the canonical regression fixture at `qa/fixtures/lifepoint_chillicothe_mo.json`.
+   The target is Lifepoint Church of Chillicothe at `https://lifepoint-church.com/`, primary worship address 434 Locust St, Chillicothe, MO 64601.
+   Verify that wrong-state/same-name LifePoint sources are rejected and contribute zero scoring impact.
+   Preserve legitimate known Lifepoint Chillicothe facilities as described in the fixture.
 
 7. Add at least two additional same-name regression cases.
 
@@ -219,6 +222,8 @@ Accuracy beats completeness.
 ---
 
 # PHASE 5 — SCORING INTEGRITY
+
+Read and use `docs/SCORING_ARCHITECTURE.md` as the target architecture.
 
 Inspect current scoring logic.
 
