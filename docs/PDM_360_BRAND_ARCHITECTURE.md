@@ -277,6 +277,41 @@ PDM website
 
 The free diagnostic should deliver genuine value and should not hide every useful result behind an appointment gate.
 
+## Paid conversational intelligence
+After a completed paid/entitled screening, PDM may unlock:
+
+### PDM 360° Advisor
+Customer-facing CTA:
+**Ask PDM 360°**
+
+The Advisor turns the completed screening into an ongoing strategy conversation.
+
+It should understand the specific organization's:
+- report
+- Visibility Score
+- category findings
+- sector module
+- Critical Visibility Leaks
+- verified evidence
+- Market & Community Intelligence
+- authorized historical screenings
+
+It must verify material claims against the screening evidence before returning strategic answers.
+
+The Advisor should support the product journey:
+
+PDM 360° Visibility Screening
+→ understand the diagnosis
+→ **Ask PDM 360°**
+→ prioritize next moves
+→ build an action plan
+→ implement through PDM / Director's Desk where appropriate
+
+This layer is premium and access-controlled. It is not a generic public chatbot and not a second scoring system.
+
+See:
+`docs/PDM_360_ADVISOR.md`
+
 ## Implementation guardrails
 When applying this brand to the live website:
 
