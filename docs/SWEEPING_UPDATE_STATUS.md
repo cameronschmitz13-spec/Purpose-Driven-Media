@@ -22,6 +22,7 @@ Performance advisor currently reports only unused-index informational notices, e
 The repository defines:
 - homepage CRO direction
 - PDM brand rules
+- **PDM 360° Visibility Screening** customer-facing brand architecture
 - unified screening UX
 - organization identity/source provenance gate
 - exact LifePoint Chillicothe regression fixture
@@ -33,6 +34,12 @@ The repository defines:
 - SEO baseline
 - ChatGPT Sites → Supabase wiring rules
 - usage-efficient skill routing
+
+The PDM 360° concept is explicitly a brand/report narrative layer. It does not replace the `visibility-v1` engine, 100-point Visibility Score, 70/30 rubric, evidence gate, Critical Visibility Leak behavior, or sector configurations.
+
+See:
+- `docs/PDM_360_BRAND_ARCHITECTURE.md`
+- `prompts/10_PDM_360_WEBSITE_BRANDING.md`
 
 ## Next live-site implementation
 The production editing surface is ChatGPT Sites.
@@ -53,28 +60,34 @@ Work should:
 5. normalize all screening UX through one shared system/configuration
 6. implement the identity gate in the actual screening pipeline
 7. use the seeded `visibility-v1` rubric architecture
-8. run the LifePoint regression
-9. run cross-organization auth isolation tests
-10. verify desktop/mobile/SEO/analytics
-11. publish only after release blockers pass
+8. apply the approved PDM 360° branding without changing score semantics
+9. run the LifePoint regression
+10. run cross-organization auth isolation tests
+11. verify desktop/mobile/SEO/analytics
+12. publish only after release blockers pass
 
 ## Release blockers
 Do not publish the screening-engine/auth update until:
 - LifePoint wrong-organization contamination is eliminated
 - rejected/ambiguous sources have zero scoring impact
-- Business/Non-Profit/Ministry/Organization share the intended UX
+- Business/Non-Profit/Faith & Ministry/Organization share the intended UX
 - signup/login/logout/reset/session restore work
 - authenticated organization ownership works
 - cross-organization access is denied
 - mobile critical paths pass
 
-## Canonical Work instruction
+## Canonical Work instructions
+
+### Core product/auth/accuracy implementation
 `Open Purpose-Driven-Media, read AGENTS.md, then execute prompts/09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md. Continue through implementation and QA. Use the already-provisioned Supabase project. Do not publish while any release blocker is failing.`
 
+### PDM 360° website branding
+After inspecting the live Site and preserving all release blockers:
+
+`Open Purpose-Driven-Media, read AGENTS.md and docs/PDM_360_BRAND_ARCHITECTURE.md, then execute prompts/10_PDM_360_WEBSITE_BRANDING.md. Apply PDM 360° as a customer-facing branding/report layer only. Do not change the 100-point Visibility Score or 70/30 scoring architecture.`
 
 ### Screening run creation
 The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
-
 
 ## Backend verification completed
 - all 10 public application tables have RLS enabled
@@ -101,6 +114,7 @@ Still pending before release:
 - all four live screening UX paths
 - LifePoint regression through the actual Site
 - mobile/browser/SEO/analytics QA
+- PDM 360° live-site branding implementation
 
 - RLS-scoped `screening_responses` persistence is deployed for save/resume of user-entered screening answers.
 
