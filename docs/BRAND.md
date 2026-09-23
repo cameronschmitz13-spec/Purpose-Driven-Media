@@ -50,6 +50,24 @@ Use the same product family and UX shell:
 
 These are configurations of one diagnostic product, not separate software products.
 
+### Paid intelligence layer
+**PDM 360° Advisor**
+
+Customer-facing chat CTA:
+**Ask PDM 360°**
+
+Preferred supporting line:
+
+**Your screening does not end with a score. Ask questions, test ideas, and turn your results into clear next moves with an advisor that already understands your organization.**
+
+The Advisor is a PDM product. Its voice should be direct, practical, numbers-aware, evidence-backed, and constraint-first.
+
+Do not market it as an imitation of, endorsement by, or licensed version of Alex Hormozi or any other public business personality.
+
+The Advisor is premium and must be unlocked through a valid server-side entitlement tied to the user's authorized screening/report or qualifying plan.
+
+See `docs/PDM_360_ADVISOR.md` for AI, verification, access-control, and sector-behavior requirements.
+
 ### Approved marketing shorthand
 When space is limited, acceptable forms include:
 - **PDM 360°**
