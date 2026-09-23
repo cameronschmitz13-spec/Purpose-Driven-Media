@@ -2,20 +2,34 @@
 
 Purpose Driven Media helps businesses and organizations get **Found, Understood, and Connected** online.
 
-This repository is the working source of truth for PDM's website conversion strategy, Visibility Screening positioning, SEO, trust/proof standards, and ChatGPT Work/Codex execution prompts.
+This repository is the working source of truth for PDM's website conversion strategy, **PDM 360° Visibility Screening** positioning, scoring architecture, SEO, trust/proof standards, and ChatGPT Work/Codex execution prompts.
 
 ## Start here
 1. Read `AGENTS.md`
 2. Read `docs/AGENT_ORCHESTRATION.md`
-3. Choose the relevant task prompt from `/prompts`
-4. Let the agent inspect the implementation before editing
+3. For screening/product work, read `docs/PDM_360_BRAND_ARCHITECTURE.md`
+4. Choose the relevant task prompt from `/prompts`
+5. Let the agent inspect the implementation before editing
 
 ## Core strategy
-The PDM Visibility Screening is the diagnostic mechanism.
+The **PDM 360° Visibility Screening** is the customer-facing brand for PDM's diagnostic mechanism.
 
 **Diagnose first. Prescribe second.**
 
-Use the screening to show what is working, what is unclear or missing, and what should be fixed first. PDM services and software should follow from those identified needs.
+Use the screening to show what is working, what is unclear or missing, what context matters, and what should be fixed first. PDM services and software should follow from those identified needs.
+
+The 360° concept is a branding/narrative layer. It does not replace the canonical 100-point Visibility Score, 70/30 scoring architecture, evidence gate, or sector configurations.
+
+## Master positioning
+**Get Found, Understood, and Connected.**
+
+Core product message:
+
+**See your organization from every angle.**
+
+Expanded:
+
+**See how people find, understand, trust, and connect with your organization—then know what to improve first.**
 
 ## Repository structure
 
@@ -23,11 +37,14 @@ Use the screening to show what is working, what is unclear or missing, and what 
 AGENTS.md
 docs/
   BRAND.md
+  PDM_360_BRAND_ARCHITECTURE.md
   VISIBILITY_SCREENING.md
+  SCORING_ARCHITECTURE.md
+  UNIFIED_SCREENING_UX.md
+  SCREENING_ACCURACY_AND_IDENTITY.md
   CRO_BASELINE.md
   SEO_BASELINE.md
   AGENT_ORCHESTRATION.md
-  HUGGINGGPT_REFERENCE.md
 prompts/
   01_HOMEPAGE_CRO.md
   02_VISIBILITY_SCREENING.md
@@ -36,6 +53,9 @@ prompts/
   05_MOBILE_UX.md
   06_SEARCH_CONSOLE.md
   07_RELEASE_QA.md
+  08_CHATGPT_SITES_IMPLEMENTATION.md
+  09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md
+  10_PDM_360_WEBSITE_BRANDING.md
 ```
 
 ## Model routing
@@ -44,10 +64,8 @@ See `docs/AGENT_ORCHESTRATION.md` for the HuggingGPT-inspired plan → select �
 ## Trust rule
 Never fabricate testimonials, ratings, customer counts, revenue lifts, awards, client outcomes, or software capabilities. Fictional screening samples must be clearly labeled as fictional.
 
-
 ## Sweeping screening update
-
-For the current comprehensive implementation, run:
+For the current comprehensive product/auth/accuracy implementation, run:
 
 `prompts/09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md`
 
@@ -62,5 +80,18 @@ Key supporting files:
 - `supabase/migrations/0002_rls_and_auth_helpers.sql`
 
 The LifePoint Chillicothe identity regression is release-blocking for screening-engine changes.
+
+## PDM 360° website branding
+For the approved customer-facing 360° rebrand, use:
+
+`prompts/10_PDM_360_WEBSITE_BRANDING.md`
+
+This prompt is intentionally constrained to preserve the existing product architecture.
+
+Read first:
+- `docs/PDM_360_BRAND_ARCHITECTURE.md`
+- `docs/BRAND.md`
+- `docs/VISIBILITY_SCREENING.md`
+- `docs/SCORING_ARCHITECTURE.md`
 
 The live website is edited in ChatGPT Sites; repository commits do not automatically publish the Site.
