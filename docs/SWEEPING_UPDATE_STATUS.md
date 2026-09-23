@@ -34,12 +34,15 @@ The repository defines:
 - SEO baseline
 - ChatGPT Sites → Supabase wiring rules
 - usage-efficient skill routing
+- **PDM 360° Advisor** paid AI product architecture, evidence-verification pipeline, entitlement model, sector behavior, and implementation prompt
 
 The PDM 360° concept is explicitly a brand/report narrative layer. It does not replace the `visibility-v1` engine, 100-point Visibility Score, 70/30 rubric, evidence gate, Critical Visibility Leak behavior, or sector configurations.
 
 See:
 - `docs/PDM_360_BRAND_ARCHITECTURE.md`
 - `prompts/10_PDM_360_WEBSITE_BRANDING.md`
+- `docs/PDM_360_ADVISOR.md`
+- `prompts/11_PDM_360_ADVISOR_IMPLEMENTATION.md`
 
 ## Next live-site implementation
 The production editing surface is ChatGPT Sites.
@@ -86,6 +89,9 @@ After inspecting the live Site and preserving all release blockers:
 
 `Open Purpose-Driven-Media, read AGENTS.md and docs/PDM_360_BRAND_ARCHITECTURE.md, then execute prompts/10_PDM_360_WEBSITE_BRANDING.md. Apply PDM 360° as a customer-facing branding/report layer only. Do not change the 100-point Visibility Score or 70/30 scoring architecture.`
 
+### PDM 360° Advisor implementation
+`Open Purpose-Driven-Media, read AGENTS.md and docs/PDM_360_ADVISOR.md, then execute prompts/11_PDM_360_ADVISOR_IMPLEMENTATION.md. Preserve the screening engine and identity gate. Implement server-side paid entitlements, screening-grounded retrieval, claim verification, sector-aware strategy, citations, and cross-tenant security. Do not fake billing if no payment provider is connected.`
+
 ### Screening run creation
 The authenticated `start-screening-run` Edge Function creates immutable-at-start run snapshots and selects the active `visibility-v1` rubric. Direct client insert/update policies on `screening_runs` have been removed; members retain RLS-scoped read access.
 
@@ -115,6 +121,9 @@ Still pending before release:
 - LifePoint regression through the actual Site
 - mobile/browser/SEO/analytics QA
 - PDM 360° live-site branding implementation
+- production payment/billing integration for Advisor entitlement
+- PDM 360° Advisor schema/backend/UI implementation
+- Advisor evaluation suite, verification QA, prompt-injection tests, and cross-tenant isolation tests
 
 - RLS-scoped `screening_responses` persistence is deployed for save/resume of user-entered screening answers.
 
