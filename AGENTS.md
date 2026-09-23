@@ -62,6 +62,28 @@ Never:
 
 The canonical scoring source of truth remains `docs/SCORING_ARCHITECTURE.md`.
 
+## PDM 360° Advisor non-negotiable
+Read:
+`docs/PDM_360_ADVISOR.md`
+
+**PDM 360° Advisor** is the paid conversational intelligence layer attached to an authorized completed screening.
+
+Customer-facing CTA:
+`Ask PDM 360°`
+
+The Advisor must:
+- ground answers in the user's actual authorized screening/report
+- preserve source identity/evidence rules
+- verify material claims before answering
+- distinguish evidence, calculation, inference, estimate, and missing data
+- remain read-only against canonical Visibility Scores/findings
+- enforce paid entitlement server-side
+- use sector-appropriate strategy for Business, Non-Profit, Faith & Ministry, and Organization
+- avoid impersonating or implying endorsement by public personalities
+- never expose or persist hidden chain-of-thought
+
+If no real payment system exists, do not fake payment. Build the entitlement boundary and locked state, then document billing as a release dependency.
+
 ## Screening UX non-negotiable
 Read:
 - `docs/UNIFIED_SCREENING_UX.md`
