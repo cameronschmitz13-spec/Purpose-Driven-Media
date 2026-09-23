@@ -38,6 +38,7 @@ AGENTS.md
 docs/
   BRAND.md
   PDM_360_BRAND_ARCHITECTURE.md
+  PDM_360_ADVISOR.md
   VISIBILITY_SCREENING.md
   SCORING_ARCHITECTURE.md
   UNIFIED_SCREENING_UX.md
@@ -56,6 +57,7 @@ prompts/
   08_CHATGPT_SITES_IMPLEMENTATION.md
   09_SWEEPING_PDM_ACCURACY_UX_AUTH_UPDATE.md
   10_PDM_360_WEBSITE_BRANDING.md
+  11_PDM_360_ADVISOR_IMPLEMENTATION.md
 ```
 
 ## Model routing
@@ -93,5 +95,18 @@ Read first:
 - `docs/BRAND.md`
 - `docs/VISIBILITY_SCREENING.md`
 - `docs/SCORING_ARCHITECTURE.md`
+
+## PDM 360° Advisor
+The paid post-screening AI layer is specified in:
+
+`docs/PDM_360_ADVISOR.md`
+
+Implementation prompt:
+
+`prompts/11_PDM_360_ADVISOR_IMPLEMENTATION.md`
+
+The Advisor is designed to be screening-specific, evidence-aware, entitlement-gated, sector-aware, and verification-first. It must not become a generic chatbot or a second scoring engine.
+
+The repository currently does not contain a production payment/subscription system, so the implementation must use a provider-neutral server-side entitlement boundary and must not fabricate checkout/payment state.
 
 The live website is edited in ChatGPT Sites; repository commits do not automatically publish the Site.
