@@ -8,7 +8,11 @@ Help businesses and organizations get **Found, Understood, and Connected** onlin
 ## Core conversion idea
 People cannot choose an organization they cannot find or understand.
 
-The PDM Visibility Screening is the primary diagnostic mechanism. PDM services and software should be presented as practical responses to gaps the screening identifies.
+The PDM Visibility Screening is the primary diagnostic mechanism. Customer-facing branding may present it as the **PDM 360° Visibility Screening**.
+
+The 360° name is a brand/communication layer, not a second scoring engine or separate product architecture.
+
+PDM services and software should be presented as practical responses to gaps the screening identifies.
 
 ## Primary audience
 Small-business owners and organization leaders who:
@@ -19,7 +23,7 @@ Small-business owners and organization leaders who:
 
 ## Primary CTA
 Preferred:
-`Start My Visibility Screening`
+`Start My 360° Visibility Screening`
 
 Preferred secondary CTA:
 `See a Sample Report`
@@ -37,18 +41,38 @@ Do not create several competing hero CTAs without a conversion reason.
 Primary line:
 `Get Found, Understood, and Connected.`
 
-Read `docs/BRAND.md` before changing logos, lockups, audience taglines, or palette.
+Screening product brand:
+`PDM 360° Visibility Screening`
+
+Core screening promise:
+`See your organization from every angle people use to find, understand, trust, and connect with you.`
+
+Read `docs/BRAND.md` and `docs/PDM_360_BRAND_ARCHITECTURE.md` before changing logos, lockups, audience taglines, screening naming, or palette.
+
+## 360° brand guardrails
+The 360° concept must strengthen the existing product rather than replace it.
+
+Never:
+- create a second 360 scoring engine
+- rename the existing Visibility Score to a Growth Score
+- invent new scored dimensions that overlap the canonical scoring architecture
+- treat demographics, market context, or geography as performance scores unless a documented rubric criterion explicitly scores them
+- remove the Found / Understood / Connected master brand framework
+- fork Business, Non-Profit, Faith & Ministry, or Organization into separate product architectures
+
+The canonical scoring source of truth remains `docs/SCORING_ARCHITECTURE.md`.
 
 ## Screening UX non-negotiable
 Read:
 - `docs/UNIFIED_SCREENING_UX.md`
 - `docs/VISIBILITY_SCREENING.md`
+- `docs/PDM_360_BRAND_ARCHITECTURE.md`
 
 All screening types must use one shared UX system.
 
 The current Non-Profit screening is the canonical interaction/visual reference.
 
-Business, Ministry, Non-Profit, and Organization screenings may differ in configured copy/rubric where justified, but must not fork into unrelated interfaces.
+Business, Faith & Ministry, Non-Profit, and Organization screenings may differ in configured copy/rubric where justified, but must not fork into unrelated interfaces.
 
 ## Screening accuracy non-negotiable
 Read:
@@ -94,10 +118,11 @@ Fictional sample reports must be clearly labeled as fictional/sample.
 ## CRO rules
 - First screen should communicate audience + problem + mechanism + CTA.
 - Diagnose first, prescribe second.
-- Explain exactly what a Visibility Screening checks.
+- Explain exactly what the PDM 360° Visibility Screening checks.
 - Put the sample report before the broad service menu.
 - Prioritize mobile readability and CTA visibility.
 - Use real proof near conversion points.
+- Use 360° to communicate breadth, not hype.
 
 ## SEO rules
 - One meaningful H1.
