@@ -5,6 +5,21 @@ Define one scoring architecture for Business, Non-Profit, Faith & Ministry, and 
 
 This architecture is based on PDM's prior cross-sector product research and should replace ad-hoc audience-specific score systems over time.
 
+## PDM 360° branding boundary
+The customer-facing name **PDM 360° Visibility Screening** does not alter this scoring architecture.
+
+The 360° concept is a brand and report narrative layer that communicates breadth.
+
+Do not:
+- create a second 360 score
+- rename the Visibility Score to Growth Score
+- add overlapping scored categories solely to support the 360° name
+- silently fold demographic, market, competitor, or geographic context into the score
+
+Market/community intelligence may appear alongside the Visibility Score as contextual evidence and strategy input.
+
+Any future scored use of those inputs requires a documented rubric change, versioning, evidence rules, regression testing, and historical-score preservation.
+
 ## Canonical 100-point model
 
 ### Universal core — 70 points
@@ -98,9 +113,10 @@ The customer-facing report may use friendlier category labels, but internal keys
 
 The same report shell should render every sector.
 
+The Found / Understood / Connected framework and 360° story may simplify the narrative layer, but must not obscure the detailed categories or alter their weights.
+
 ## Accuracy over benchmarking
 For metrics without a defensible sector benchmark, baseline the organization's own performance and measure improvement over time rather than inventing a universal target.
-
 
 ## Weighted normalization
 
