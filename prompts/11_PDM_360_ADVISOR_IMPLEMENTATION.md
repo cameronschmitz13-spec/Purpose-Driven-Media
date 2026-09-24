@@ -5,6 +5,7 @@ Open the existing Purpose Driven Media project and the `Purpose-Driven-Media` re
 Read first:
 - `AGENTS.md`
 - `docs/PDM_360_ADVISOR.md`
+- `docs/PDM_360_ADVISOR_TECH_STACK.md`
 - `docs/PDM_360_BRAND_ARCHITECTURE.md`
 - `docs/VISIBILITY_SCREENING.md`
 - `docs/SCORING_ARCHITECTURE.md`
@@ -20,6 +21,38 @@ Customer-facing label:
 **Ask PDM 360°**
 
 This must be a screening-grounded advisor, not a generic chatbot.
+
+## Approved technical stack
+
+Use the architecture in `docs/PDM_360_ADVISOR_TECH_STACK.md`.
+
+Default implementation:
+
+- **Vercel AI SDK** — primary streaming chat, structured output, tool calling, and single-agent runtime
+- **Vercel AI Elements** — report-embedded chat UI; install only the components actually needed
+- **Supabase** — Auth, report ownership, entitlements, screening context, conversations, citations, verification metadata, RLS
+- **Vercel AI Gateway** — model/provider routing, current model selection, cost/fallback control
+- **Stripe** — preferred payment integration when the real billing flow is implemented; verified webhook grants/revokes server-side entitlement
+- **OpenAI Agents SDK TypeScript** — optional Tier-3 specialist delegation/verification only
+
+Do not begin by adding CrewAI, LangGraph, LangGraph Swarm, or Microsoft Agent Framework.
+
+Do not build a multi-agent workflow for simple questions.
+
+Use this escalation order:
+
+1. deterministic Supabase/database lookup
+2. lightweight single-model explanation
+3. strong single-model strategy + verification
+4. specialist agent delegation only when the problem genuinely benefits from independent roles
+
+Before coding:
+- inspect installed package versions
+- verify current Vercel AI SDK / AI Elements / AI Gateway documentation
+- fetch current model IDs rather than relying on remembered names
+- inspect the existing payment implementation before adding Stripe
+- preserve the provider-neutral entitlement model even if Stripe is selected
+
 
 ## Non-negotiable behavior
 The Advisor must:
