@@ -64,7 +64,8 @@ The canonical scoring source of truth remains `docs/SCORING_ARCHITECTURE.md`.
 
 ## PDM 360° Advisor non-negotiable
 Read:
-`docs/PDM_360_ADVISOR.md`
+- `docs/PDM_360_ADVISOR.md`
+- `docs/PDM_360_ADVISOR_TECH_STACK.md`
 
 **PDM 360° Advisor** is the paid conversational intelligence layer attached to an authorized completed screening.
 
@@ -83,6 +84,16 @@ The Advisor must:
 - never expose or persist hidden chain-of-thought
 
 If no real payment system exists, do not fake payment. Build the entitlement boundary and locked state, then document billing as a release dependency.
+
+Advisor implementation defaults:
+- Vercel AI SDK for primary chat/tool runtime
+- AI Elements for UI
+- Supabase for auth/data/entitlements/retrieval
+- AI Gateway for model routing/cost control
+- Stripe for trusted payment-to-entitlement when billing is implemented
+- OpenAI Agents SDK TypeScript only for complex specialist delegation/verification
+
+Use single-agent/deterministic paths first. Do not introduce CrewAI, LangGraph, LangGraph Swarm, or Microsoft Agent Framework into v1 without a proven requirement.
 
 ## Screening UX non-negotiable
 Read:
