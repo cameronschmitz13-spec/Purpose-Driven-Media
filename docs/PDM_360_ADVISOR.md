@@ -157,6 +157,32 @@ The Advisor may discuss contextual data that is not score-bearing, but it must d
 
 ---
 
+## Approved implementation stack
+
+The approved default stack is documented in:
+
+`docs/PDM_360_ADVISOR_TECH_STACK.md`
+
+Use:
+
+- **Vercel AI SDK** as the primary conversation, streaming, tool-calling, and structured-output runtime
+- **Vercel AI Elements** for the Advisor chat interface, evidence presentation, suggestions, and citations
+- **Supabase** for Auth, organization/report ownership, Advisor entitlements, screening context, conversations, RLS, and retrieval
+- **Vercel AI Gateway** for current model/provider routing, cost control, and fallback
+- **Stripe** as the preferred production payment trigger for server-side Advisor entitlements once billing is genuinely implemented
+- **OpenAI Agents SDK for TypeScript** only as an escalation layer for complex specialist delegation and independent verification
+
+### Architecture rule
+
+Default to the smallest sufficient path.
+
+Do not invoke a multi-agent workflow for simple report questions.
+
+Use deterministic lookup first, then single-model reasoning, then strong reasoning + verification, and only then specialist agents when the question materially benefits from delegation.
+
+Do not introduce CrewAI, LangGraph, LangGraph Swarm, or Microsoft Agent Framework into v1 without a concrete requirement that the approved stack cannot satisfy.
+
+
 ## State-of-the-art understanding architecture
 
 Use a hybrid approach rather than a single giant prompt.
