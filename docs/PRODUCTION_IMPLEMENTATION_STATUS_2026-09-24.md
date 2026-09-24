@@ -5,7 +5,7 @@ This records the completed Sol handoff for the live Purpose Driven Media, PDM bu
 ## Published source versions
 
 - Public PDM Site source commit: `0769dc980b610253c301cac99c125aecd1e749ca` (Sites version 30)
-- PDM business backend source commit: `a94dcd8e0296a16e45684853657b2e93281715d6` (Sites version 47)
+- PDM business backend source commit: `c28b4f3a85f149e791fdb531a83cc7b8246fc35a` (Sites version 48)
 - Ministry/nonprofit backend source commit: `239922dfb94f8db64423a54e30a5ff7788bbe13d` (Sites version 56)
 - GAP House source commit: `2b3234498527b5ac25a65281ee527155d1c661c4` (Sites version 11)
 
@@ -29,6 +29,8 @@ All four referenced production deployments completed successfully.
 - PDM → GAP House directory sync reconciles every status and do-not-contact restriction. Pending, rejected, archived, and suppressed records cannot be newly imported for outreach, and GAP House restrictions cannot be reactivated by a later PDM sync.
 - Lead discovery excludes disused/abandoned listings, deduplicates by organization while retaining the most complete record, and prioritizes records with public contact evidence.
 
+- Public LifePoint and business sample maps can now use signed portal requests to resolve addresses and load Census county geography without forcing a visitor sign-in. Direct or tampered backend requests remain blocked.
+
 ## Lead-finding implementation note
 
 The lead-research pipeline was informed by [Dukotah/leadgen](https://github.com/Dukotah/leadgen), an MIT-licensed project with a useful collect → deduplicate → enrich → suppress → score pattern. PDM adapts that pattern to the existing TypeScript/OpenStreetMap workflow rather than copying its Python stack or adding an unreviewed dependency. Leads remain research candidates and require operator review before CRM insertion; no outreach is sent automatically.
@@ -36,7 +38,7 @@ The lead-research pipeline was informed by [Dukotah/leadgen](https://github.com/
 ## Verification
 
 - Public PDM: 14/14 tests passed; production build passed.
-- PDM business backend: production build passed.
+- PDM business backend: production build and 32/32 tests passed; live address lookup and county geography returned 200.
 - Ministry/nonprofit backend: production build passed.
 - Live admin route shows the owner-priority access gate.
 - Live legacy business admin URL redirects to `https://purposedrivenmedia.group/business/admin`.
