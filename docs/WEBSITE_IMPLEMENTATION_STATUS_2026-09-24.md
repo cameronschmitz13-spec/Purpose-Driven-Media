@@ -12,10 +12,12 @@ The public website is built and published from the Sites source repository for p
 - Business and sector pricing use the Visibility Roadmap name. They identify PDM 360° Advisor as planned and unavailable; checkout does not confer Advisor access. Existing prices and one-time Square behavior remain as published.
 - The public review-request page provides a prefilled email with report reference and a phone fallback. It states that a requested time is not an automatically booked appointment. Existing account-gated calendar routes remain for authenticated workflows.
 - Privacy and service terms now distinguish private saved business reports from intentionally public example reports.
+- The business admin dashboard includes ministry and nonprofit screening records alongside business clients, lists all reports per ministry/nonprofit organization, links to each report, and provides confirmed deletion for an individual screening or all screenings for that organization. The owner-only dashboard is the entry point; bulk deletion requires typing DELETE.
+- Report pages visibly present the screening-grounded PDM 360° Advisor with evidence-focused starter questions and a clear locked state. It is not a working chat and is not represented as available or unlocked.
 
-## Still required before Advisor can be sold as active
+## Advisor release status
 
-Implement each-request server authorization for account identity, organization membership, target report access and active entitlement; verified payment or audited grant activation; report-grounded cited answers; conflict and arithmetic checks; rate limits, expiration, revocation, retention and usage terms. Follow `docs/PDM_360_ADVISOR.md`. Do not change the static preview label or promise unlimited usage until these pass.
+The GitHub Advisor specification requires server-validated identity, organization/report access, and paid entitlement on every request; real billing or audited grants; screening-grounded answers with evidence references; verification; and cross-tenant tests. No AI provider key or Advisor entitlement is configured in the website runtime. The website therefore keeps the Advisor visibly locked. Do not claim the chatbot is live or sell Advisor access as active until the release gates in `docs/PDM_360_ADVISOR.md` are met.
 
 ## Still required for comprehensive sitewide completion
 
@@ -30,4 +32,4 @@ Implement each-request server authorization for account identity, organization m
 
 ## Meeting walkthrough
 
-Open `/organization/reports/lifepoint`, explain the dated 92/100 result and three priorities, review facilities and the 30-day plan, open `/organization/reports/lifepoint/map` if 3-D works on the actual laptop, then use the public review-request path. The 97 figure is a planning target, not an achieved score. Advisor is a preview.
+Open `/organization/reports/lifepoint`, explain the dated 92/100 result and three priorities, review facilities and the 30-day plan, open `/organization/reports/lifepoint/map` if 3-D works on the actual laptop, then use the public review-request path. The 97 figure is a planning target, not an achieved score. Advisor remains locked until entitlement and AI safeguards are implemented.
