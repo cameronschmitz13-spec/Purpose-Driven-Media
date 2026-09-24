@@ -48,3 +48,11 @@ The lead-research pipeline was informed by [Dukotah/leadgen](https://github.com/
 ## Remaining controlled limitation
 
 PDM 360° Advisor is visible and accurately described as pending access. A production AI provider and a verified entitlement/payment path are not configured, so the site does not pretend that live Advisor chat is available. This remains the next integration task.
+
+## Admin and business results refinement — later 2026-09-24
+
+- Public PDM Site source commit: `85f651bd967527e575229893e7bdd1329853f649` (Sites version 31, production deployment succeeded).
+- The admin opens on business reports, with business, ministry/nonprofit, and all-reports selectors and search immediately below the heading. CRM summary cards are compact; duplicate statistics and large shortcut cards are removed. Meeting requests, public footprint, and meeting notes expand on demand. The pipeline shortcut opens Shepherd’s List, and client details offer full report, rescore, and existing deletion controls.
+- Business results show a shorter primary route through overview, 3-D market map, Category Leader Pattern, action plan, and Advisor; secondary report sections remain available under More sections. Reading size, focus treatment, and mobile layout were refined. The 3-D map and evidence remain in the report.
+- PDM 360° Advisor copy now labels the proposed screening-grounded experience as planned for the Visibility Roadmap. The example questions are a preview, not live chat. Production AI provider and verified entitlement/payment integration are still pending; do not claim Advisor is unlocked by payment.
+- Production build and 14/14 public Site checks passed; owner-authenticated dashboard behavior was not re-tested with an owner session in this pass.
