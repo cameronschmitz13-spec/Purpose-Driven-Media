@@ -64,3 +64,30 @@ PDM 360° Advisor is visible and accurately described as pending access. A produ
 - Canonical `/business/report/[id]` already uses `SupabaseBusinessReport` and the server-validated `/api/account-data` endpoint; the older `modules/business/app/report/[id]` route is not the canonical page. Do not use the legacy route as evidence of the live flow.
 - Production build and 15/15 site checks passed. Public admin login was observed on `purposedrivenmedia.group`. A successful private report open/delete still requires an authenticated owner session to verify end to end.
 - Advisor remains a labeled preview. Production Sites environment exposes only the business and organization portal secrets; no AI provider credential is configured, and no verified paid Advisor entitlement lifecycle is deployed. Do not announce or unlock live Advisor chat until both prerequisites are implemented and tested.
+
+## GAP House connection and Titan investigation — 2026-09-24 22:24 UTC
+
+Production deployments succeeded:
+- Public PDM version 34, source `485e6bd2552c672b94921bb6e34d6a75cd7beb9f`.
+- PDM business backend version 49, source `73d1c421660919ebd4163e45f7e4214c4c0a807e`.
+- GAP House version 12, source `ac362f171a7302442f876008aecd6ec660fa5b52`.
+
+### Confirmed CRM failure and repair
+
+Production logs showed successful PDM directory transfers reaching GAP House, while the `check_gap` action failed in 5 ms without a GAP invocation. An isolated Miniflare/Workers check reproduced the runtime error: `redirect: "error"` is unsupported; only `follow` and `manual` are accepted.
+
+Both PDM's connection check and GAP House's PDM directory pull used the unsupported option. They now use `manual` and reject non-OK responses. PDM push also uses manual redirects to prevent forwarding its bearer credential to a redirected destination. The check trims its URL/token consistently with the transfer.
+
+GAP House can now reconcile restrictions when zero contacts are approved; previously the button was disabled by the approved count. Existing do-not-contact choices remain protected. The directory heading no longer claims a connection before a successful check.
+
+Verification: 6/6 PDM directory tests and 5/5 GAP prospect tests passed, including unauthenticated/read-only denial, restriction forwarding, readiness validation, and rejection of 302 responses. All three production builds passed. An independent read-only reviewer found no blocking issues. The authenticated owner click-through has NOT been verified in the available browser session, which is signed out. Deployment success and these tests must not be described as full authenticated end-to-end proof.
+
+### Titan is blocked; not connected
+
+The existing email connector implements Gmail only. Titan OAuth discovery advertises dynamic registration and PKCE, with `mail:read` and `contacts:read` scopes available.
+
+A registration request for client `Purpose Driven Media CRM` using the proposed callback `https://purposedrivenmedia.group/business/admin/shepherds-list/titan/callback` was rejected with `UnapprovedRedirectUri`: `Redirect URI host is not on the registration allow-list`. No OAuth client/token or mailbox access was obtained.
+
+Titan must approve the PDM host/client and confirm account region and eligible plan. The callback is proposed, not an implemented route. After approval, the owner-only OAuth flow, encrypted token persistence, live tool/schema discovery, bounded import/deduplication and mailbox verification remain to be implemented. Do not reuse Titan's ChatGPT/Claude client IDs or redirect through an unrelated allow-listed domain.
+
+The owner-only Shepherd's List contains a collapsed Titan setup notice with the exact support request. It explicitly says `sales@purposedrivenmedia.group` is unconnected. No mail was sent and no Titan mail/contacts were imported.
