@@ -1,14 +1,15 @@
 # Production implementation status — 2026-09-24
 
-This records the completed Sol handoff for the live Purpose Driven Media, PDM business backend, and GAP House CRM sites.
+This records the completed Sol handoff for the live Purpose Driven Media, PDM business backend, ministry/nonprofit screening service, and GAP House CRM sites.
 
 ## Published source versions
 
-- Public PDM Site source commit: `335e45ffe08d8994b526ffa864a13879cba6eb68` (Sites version 29)
-- PDM business backend source commit: `fe280047c5f72bd7248bc14ed53e3eb2d505ecf0` (Sites version 46)
+- Public PDM Site source commit: `0769dc980b610253c301cac99c125aecd1e749ca` (Sites version 30)
+- PDM business backend source commit: `a94dcd8e0296a16e45684853657b2e93281715d6` (Sites version 47)
+- Ministry/nonprofit backend source commit: `239922dfb94f8db64423a54e30a5ff7788bbe13d` (Sites version 56)
 - GAP House source commit: `2b3234498527b5ac25a65281ee527155d1c661c4` (Sites version 11)
 
-All three production deployments completed successfully.
+All four referenced production deployments completed successfully.
 
 ## Delivered
 
@@ -17,11 +18,16 @@ All three production deployments completed successfully.
 - Business pricing is reduced to two clear choices: the $160 Visibility Roadmap or a report-based scoped quote.
 - The homepage no longer presents a dense cross-sector pricing wall; visitors choose a screening first and see sector-relevant next steps in their results.
 - Quote requests carry the organization, report reference, and report priority into the review request.
-- The central admin exposes all ministry/nonprofit screening history and per-screening/client deletion controls.
+- The central admin exposes all business, ministry, and nonprofit screening history.
+- The PDM owner can open the admin through either the current ChatGPT owner session or the PDM owner account; non-owner accounts remain blocked.
+- Owner report access includes reports created under other customer accounts without weakening public report privacy.
+- Per-screening and per-client delete controls now wait for the authenticated session, validate the response, and surface the real error if deletion fails.
+- Legacy business and ministry ChatGPT-site page links permanently redirect to their canonical `purposedrivenmedia.group` routes while preserving query strings and report IDs.
+- The standalone backend API routes remain available to the canonical site and are excluded from legacy page redirects.
 - Prospect research and CRM tools are collapsed into clearer admin drawers to reduce dashboard density.
 - The Shepherd's List places the GAP House directory sync before prospect discovery.
-- PDM → GAP House directory sync now reconciles every status and do-not-contact restriction. Pending, rejected, archived, and suppressed records cannot be newly imported for outreach, and GAP House restrictions cannot be reactivated by a later PDM sync.
-- Lead discovery now excludes disused/abandoned listings, deduplicates by organization while retaining the most complete record, and prioritizes records with public contact evidence.
+- PDM → GAP House directory sync reconciles every status and do-not-contact restriction. Pending, rejected, archived, and suppressed records cannot be newly imported for outreach, and GAP House restrictions cannot be reactivated by a later PDM sync.
+- Lead discovery excludes disused/abandoned listings, deduplicates by organization while retaining the most complete record, and prioritizes records with public contact evidence.
 
 ## Lead-finding implementation note
 
@@ -29,10 +35,13 @@ The lead-research pipeline was informed by [Dukotah/leadgen](https://github.com/
 
 ## Verification
 
-- Public PDM: 13/13 tests passed; production build passed.
-- PDM business backend: 10/10 focused tests passed; production build passed.
-- GAP House: 4/4 focused tests passed; production build passed.
-- `git diff --check` passed in all three source repositories.
+- Public PDM: 14/14 tests passed; production build passed.
+- PDM business backend: production build passed.
+- Ministry/nonprofit backend: production build passed.
+- Live admin route shows the owner-priority access gate.
+- Live legacy business admin URL redirects to `https://purposedrivenmedia.group/business/admin`.
+- Live legacy LifePoint report URL redirects to `https://purposedrivenmedia.group/organization/reports/lifepoint`.
+- `git diff --check` passed in all three changed source repositories.
 
 ## Remaining controlled limitation
 
