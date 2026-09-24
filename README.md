@@ -39,6 +39,7 @@ docs/
   BRAND.md
   PDM_360_BRAND_ARCHITECTURE.md
   PDM_360_ADVISOR.md
+  PDM_360_ADVISOR_TECH_STACK.md
   VISIBILITY_SCREENING.md
   SCORING_ARCHITECTURE.md
   UNIFIED_SCREENING_UX.md
@@ -106,6 +107,12 @@ Implementation prompt:
 `prompts/11_PDM_360_ADVISOR_IMPLEMENTATION.md`
 
 The Advisor is designed to be screening-specific, evidence-aware, entitlement-gated, sector-aware, and verification-first. It must not become a generic chatbot or a second scoring engine.
+
+Approved implementation stack:
+
+`docs/PDM_360_ADVISOR_TECH_STACK.md`
+
+Default: **Vercel AI SDK + AI Elements + Supabase + AI Gateway + Stripe**, with **OpenAI Agents SDK TypeScript** reserved for complex delegated/verification workflows. Do not add a heavier orchestration framework to v1 without a concrete requirement.
 
 The repository currently does not contain a production payment/subscription system, so the implementation must use a provider-neutral server-side entitlement boundary and must not fabricate checkout/payment state.
 
