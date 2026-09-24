@@ -56,3 +56,11 @@ PDM 360° Advisor is visible and accurately described as pending access. A produ
 - Business results show a shorter primary route through overview, 3-D market map, Category Leader Pattern, action plan, and Advisor; secondary report sections remain available under More sections. Reading size, focus treatment, and mobile layout were refined. The 3-D map and evidence remain in the report.
 - PDM 360° Advisor copy now labels the proposed screening-grounded experience as planned for the Visibility Roadmap. The example questions are a preview, not live chat. Production AI provider and verified entitlement/payment integration are still pending; do not claim Advisor is unlocked by payment.
 - Production build and 14/14 public Site checks passed; owner-authenticated dashboard behavior was not re-tested with an owner session in this pass.
+
+## Admin website sign-in follow-up — later 2026-09-24
+
+- Public PDM Site source commit `3d52ea0b0cad5ba846471527a4d9e60b44e44fe8` (Sites version 33) deployed successfully.
+- The shared website header exposes Admin sign in, leading to the PDM owner website account login. The login describes owner access to saved business, ministry and nonprofit screenings. The owner gate now lets someone signed in under another PDM account sign out and switch accounts, avoiding a redirect loop. The business report error state directs an admin to that owner login. The admin sidebar signs out of the Supabase website session when present.
+- Canonical `/business/report/[id]` already uses `SupabaseBusinessReport` and the server-validated `/api/account-data` endpoint; the older `modules/business/app/report/[id]` route is not the canonical page. Do not use the legacy route as evidence of the live flow.
+- Production build and 15/15 site checks passed. Public admin login was observed on `purposedrivenmedia.group`. A successful private report open/delete still requires an authenticated owner session to verify end to end.
+- Advisor remains a labeled preview. Production Sites environment exposes only the business and organization portal secrets; no AI provider credential is configured, and no verified paid Advisor entitlement lifecycle is deployed. Do not announce or unlock live Advisor chat until both prerequisites are implemented and tested.
