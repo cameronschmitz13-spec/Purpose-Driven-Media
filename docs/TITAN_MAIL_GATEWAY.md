@@ -41,7 +41,7 @@ Default Titan US/global endpoints:
 - SMTP: `smtp.titan.email`, port `465`, SSL/TLS
 - SMTP fallback if required by the environment: port `587`, STARTTLS
 
-If Titan 2FA is enabled, use a Titan application password rather than the normal mailbox password.
+Enable Titan third-party email access for the mailbox before connecting. If Titan 2FA is enabled, use a Titan application password rather than the normal mailbox password.
 
 Some Titan reseller regions use different endpoints. Confirm the mailbox region before production deployment and override the `TITAN_*_HOST` values if required.
 
