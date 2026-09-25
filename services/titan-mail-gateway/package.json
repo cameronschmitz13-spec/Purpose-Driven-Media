@@ -1,0 +1,19 @@
+{
+  "name": "@pdm/titan-mail-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "check": "node --check src/server.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.1",
+    "fastify": "5.12.5",
+    "imapflow": "2.0.6",
+    "mailparser": "3.9.28",
+    "nodemailer": "10.0.10",
+    "zod": "4.6.5"
+  }
+}
