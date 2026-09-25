@@ -1,0 +1,40 @@
+name: Screening Engine
+
+on:
+  push:
+    paths:
+      - "screening-engine/**"
+      - "docs/SCREENING_ENGINE_STACK.md"
+      - "qa/fixtures/**"
+      - ".github/workflows/screening-engine.yml"
+  pull_request:
+    paths:
+      - "screening-engine/**"
+      - "docs/SCREENING_ENGINE_STACK.md"
+      - "qa/fixtures/**"
+      - ".github/workflows/screening-engine.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Normalize formatting in CI workspace
+        run: deno fmt screening-engine
+
+      - name: Confirm formatter-clean workspace
+        run: deno fmt --check screening-engine
+
+      - name: Type check
+        run: deno check screening-engine/cli.ts screening-engine/tests/engine_test.ts screening-engine/tests/trenton_fixture_test.ts
+
+      - name: Identity and scoring regression tests
+        run: deno test --allow-read screening-engine/tests
