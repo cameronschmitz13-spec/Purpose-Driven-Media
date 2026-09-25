@@ -10,6 +10,9 @@ const required = ["PDM_MAIL_GATEWAY_TOKEN", "TITAN_EMAIL", "TITAN_APP_PASSWORD",
 for (const key of required) {
   if (!process.env[key]) throw new Error(`Missing required environment variable: ${key}`);
 }
+if (process.env.PDM_MAIL_GATEWAY_TOKEN.length < 32) {
+  throw new Error("PDM_MAIL_GATEWAY_TOKEN must be at least 32 characters");
+}
 
 const config = {
   port: Number(process.env.PORT || 8787),
@@ -111,6 +114,7 @@ async function parseFetchedMessage(folder, message) {
     from_json: addressList(parsed.from),
     to_json: addressList(parsed.to),
     cc_json: addressList(parsed.cc),
+    reply_to_json: addressList(parsed.replyTo),
     received_at: (parsed.date || message.internalDate || new Date()).toISOString(),
     flags: [...(message.flags || [])].map(String),
     has_attachments: (parsed.attachments?.length || 0) > 0,
@@ -192,7 +196,14 @@ async function searchLive(query, folder, limit) {
   const lock = await client.getMailboxLock(folder);
   let selected = [];
   try {
-    const uids = await client.search({ text: query }, { uid: true });
+    const uids = await client.search({
+      or: [
+        { subject: query },
+        { from: query },
+        { to: query },
+        { body: query },
+      ],
+    }, { uid: true });
     selected = uids.slice(-limit).reverse();
   } finally {
     lock.release();
@@ -295,6 +306,7 @@ app.get("/v1/messages/:id", async (request, reply) => {
     from: live.from_json,
     to: live.to_json,
     cc: live.cc_json,
+    reply_to: live.reply_to_json,
     received_at: live.received_at,
     flags: live.flags,
     has_attachments: live.has_attachments,
@@ -315,7 +327,7 @@ app.post("/v1/reply", async (request, reply) => {
   if (!stored) return reply.code(404).send({ error: "Message not found" });
   const original = await fetchOneLive(stored);
   if (!original) return reply.code(410).send({ error: "Message no longer exists in Titan" });
-  const to = original.from_json?.[0]?.address;
+  const to = original.reply_to_json?.[0]?.address || original.from_json?.[0]?.address;
   if (!to) return reply.code(422).send({ error: "Original sender address is unavailable" });
   const references = [...(original.references_json || []), original.provider_message_id].filter(Boolean).join(" ");
   const subject = /^re:/i.test(original.subject || "") ? original.subject : `Re: ${original.subject || ""}`.trim();
