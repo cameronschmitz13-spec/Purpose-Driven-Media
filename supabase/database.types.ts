@@ -447,12 +447,145 @@ export type Database = {
           },
         ]
       }
+      titan_mail_accounts: {
+        Row: {
+          created_at: string
+          email_address: string
+          id: string
+          last_synced_at: string | null
+          organization_id: string | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_address: string
+          id?: string
+          last_synced_at?: string | null
+          organization_id?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_address?: string
+          id?: string
+          last_synced_at?: string | null
+          organization_id?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "titan_mail_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      titan_mail_messages: {
+        Row: {
+          account_id: string
+          body_text: string
+          cc_json: Json
+          flags: string[]
+          folder: string
+          from_json: Json
+          has_attachments: boolean
+          id: string
+          imap_uid: number
+          in_reply_to: string | null
+          indexed_at: string
+          organization_id: string | null
+          provider_message_id: string | null
+          received_at: string | null
+          references_json: Json
+          snippet: string
+          subject: string
+          to_json: Json
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          body_text?: string
+          cc_json?: Json
+          flags?: string[]
+          folder: string
+          from_json?: Json
+          has_attachments?: boolean
+          id?: string
+          imap_uid: number
+          in_reply_to?: string | null
+          indexed_at?: string
+          organization_id?: string | null
+          provider_message_id?: string | null
+          received_at?: string | null
+          references_json?: Json
+          snippet?: string
+          subject?: string
+          to_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          body_text?: string
+          cc_json?: Json
+          flags?: string[]
+          folder?: string
+          from_json?: Json
+          has_attachments?: boolean
+          id?: string
+          imap_uid?: number
+          in_reply_to?: string | null
+          indexed_at?: string
+          organization_id?: string | null
+          provider_message_id?: string | null
+          received_at?: string | null
+          references_json?: Json
+          snippet?: string
+          subject?: string
+          to_json?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "titan_mail_messages_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "titan_mail_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "titan_mail_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      finalize_screening_score: {
+        Args: {
+          p_critical_issues?: Json
+          p_planning_target?: number
+          p_ratings: Json
+          p_screening_run_id: string
+        }
+        Returns: {
+          report_id: string
+          total_score: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
