@@ -505,6 +505,7 @@ export type Database = {
           provider_message_id: string | null
           received_at: string | null
           references_json: Json
+          reply_to_json: Json
           snippet: string
           subject: string
           to_json: Json
@@ -526,6 +527,7 @@ export type Database = {
           provider_message_id?: string | null
           received_at?: string | null
           references_json?: Json
+          reply_to_json?: Json
           snippet?: string
           subject?: string
           to_json?: Json
@@ -547,6 +549,7 @@ export type Database = {
           provider_message_id?: string | null
           received_at?: string | null
           references_json?: Json
+          reply_to_json?: Json
           snippet?: string
           subject?: string
           to_json?: Json
