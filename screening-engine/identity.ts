@@ -15,6 +15,26 @@ const normPhone = (v: unknown) => {
   return digits.length >= 10 ? digits.slice(-10) : digits;
 };
 
+const normAddress = (v: unknown) =>
+  text(v)
+    .toLowerCase()
+    .replace(/\b(\d{5})-\d{4}\b/g, "$1")
+    .replace(/\beast\b/g, "e")
+    .replace(/\bwest\b/g, "w")
+    .replace(/\bnorth\b/g, "n")
+    .replace(/\bsouth\b/g, "s")
+    .replace(/\bstreet\b/g, "st")
+    .replace(/\bavenue\b/g, "ave")
+    .replace(/\broad\b/g, "rd")
+    .replace(/\bboulevard\b/g, "blvd")
+    .replace(/\bdrive\b/g, "dr")
+    .replace(/\blane\b/g, "ln")
+    .replace(/\bcourt\b/g, "ct")
+    .replace(/\bcircle\b/g, "cir")
+    .replace(/\bparkway\b/g, "pkwy")
+    .replace(/\bhighway\b/g, "hwy")
+    .replace(/[^a-z0-9]+/g, "");
+
 export const normDomain = (v: unknown) => {
   let raw = text(v).toLowerCase();
   if (!raw) return "";
@@ -56,8 +76,8 @@ export function evaluateSourceIdentity(
   const cPostal = normPostal(candidate.observed_postal_code);
   const tPhone = normPhone(target.phone);
   const cPhone = normPhone(candidate.observed_phone);
-  const tAddress = norm(target.primary_address);
-  const cAddress = norm(candidate.observed_address);
+  const tAddress = normAddress(target.primary_address);
+  const cAddress = normAddress(candidate.observed_address);
 
   if (targetDomain && sourceDomain === targetDomain) strong.push("canonical_domain");
   if (candidateDomain && targetDomain && candidateDomain === targetDomain) {
