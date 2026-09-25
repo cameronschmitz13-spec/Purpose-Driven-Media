@@ -46,6 +46,37 @@ Deno.test("LifePoint: same-entity stale city listing remains confirmed by exact 
   );
 });
 
+
+Deno.test("equivalent street suffixes and ZIP+4 remain the same address", () => {
+  const decision = evaluateSourceIdentity(
+    {
+      organization_name: "Trenton First Assembly of God",
+      canonical_domain: "trentonfirstassemblyofgod.com",
+      primary_address: "1107 E 11th St, Trenton, MO 64683",
+      city: "Trenton",
+      state_region: "MO",
+      postal_code: "64683",
+    },
+    {
+      id: "equivalent-address",
+      source_url: "https://example.org/trenton",
+      source_type: "directory",
+      fetched_at: "2026-09-25T00:00:00Z",
+      observed_name: "Trenton First Assembly of God",
+      observed_address: "1107 East 11th Street, Trenton, MO 64683-2512",
+      observed_city: "Trenton",
+      observed_state: "MO",
+      observed_postal_code: "64683-2512",
+    },
+  );
+
+  assert(decision.status === "confirmed", JSON.stringify(decision));
+  assert(
+    !decision.conflicts.includes("different_address"),
+    "equivalent address formatting must not create a false identity conflict",
+  );
+});
+
 Deno.test("LifePoint: same-name Tennessee church is rejected", () => {
   const decision = evaluateSourceIdentity(target, {
     id: "tennessee-lifepoint",
