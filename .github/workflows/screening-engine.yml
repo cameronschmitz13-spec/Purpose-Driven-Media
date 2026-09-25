@@ -37,4 +37,4 @@ jobs:
         run: deno check screening-engine/cli.ts screening-engine/tests/engine_test.ts screening-engine/tests/trenton_fixture_test.ts
 
       - name: Identity and scoring regression tests
-        run: deno test screening-engine/tests
+        run: deno test --allow-read screening-engine/tests
