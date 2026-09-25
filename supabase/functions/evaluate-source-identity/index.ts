@@ -18,6 +18,25 @@ const normPhone = (v: unknown) => {
   const d = text(v).replace(/\D/g, "");
   return d.length >= 10 ? d.slice(-10) : d;
 };
+const normAddress = (v: unknown) =>
+  text(v)
+    .toLowerCase()
+    .replace(/\b(\d{5})-\d{4}\b/g, "$1")
+    .replace(/\beast\b/g, "e")
+    .replace(/\bwest\b/g, "w")
+    .replace(/\bnorth\b/g, "n")
+    .replace(/\bsouth\b/g, "s")
+    .replace(/\bstreet\b/g, "st")
+    .replace(/\bavenue\b/g, "ave")
+    .replace(/\broad\b/g, "rd")
+    .replace(/\bboulevard\b/g, "blvd")
+    .replace(/\bdrive\b/g, "dr")
+    .replace(/\blane\b/g, "ln")
+    .replace(/\bcourt\b/g, "ct")
+    .replace(/\bcircle\b/g, "cir")
+    .replace(/\bparkway\b/g, "pkwy")
+    .replace(/\bhighway\b/g, "hwy")
+    .replace(/[^a-z0-9]+/g, "");
 const normDomain = (v: unknown) => {
   let raw = text(v).toLowerCase();
   if (!raw) return "";
@@ -116,7 +135,7 @@ Deno.serve(async (req: Request) => {
   const tState = normState(target.state_region), cState = normState(candidate.observed_state);
   const tPostal = normPostal(target.postal_code), cPostal = normPostal(candidate.observed_postal_code);
   const tPhone = normPhone(target.phone), cPhone = normPhone(candidate.observed_phone);
-  const tAddress = norm(target.primary_address), cAddress = norm(candidate.observed_address);
+  const tAddress = normAddress(target.primary_address), cAddress = normAddress(candidate.observed_address);
 
   if (targetDomain && sourceDomain === targetDomain) strong.push("canonical_domain");
   if (candidateDomain && targetDomain && candidateDomain === targetDomain) strong.push("observed_domain");
