@@ -1,0 +1,350 @@
+{
+  "run_id": "00000000-0000-0000-0000-000000000925",
+  "screening_type": "faith_ministry",
+  "rubric_version": "visibility-v1",
+  "observed_at": "2026-09-25T18:30:00Z",
+  "planning_target": 75,
+  "target": {
+    "organization_name": "Trenton First Assembly of God",
+    "canonical_domain": "trentonfirstassemblyofgod.com",
+    "website_url": "https://www.trentonfirstassemblyofgod.com/",
+    "primary_address": "1107 E 11th St, Trenton, MO 64683",
+    "city": "Trenton",
+    "state_region": "MO",
+    "postal_code": "64683",
+    "phone": "(660) 359-4400",
+    "first_party_social": {
+      "facebook": "https://www.facebook.com/TrentonFirstAG/"
+    }
+  },
+  "sources": [
+    {
+      "id": "official-home",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:10:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "service_times": ["Sunday first service 9:00-10:00", "Sunday School 10:10-10:50", "Sunday second service 11:00-Noon", "Kids Church during second service only"],
+        "mission": ["Exalt", "Encourage", "Evangelize"],
+        "giving_copy": "Donate Below",
+        "footer_years": "Copyright 2018, 2019, 2020, 2021"
+      }
+    },
+    {
+      "id": "official-service-times",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/service-times",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:12:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "sunday_school": "10:00 am",
+        "kids_church": "11:00 am second service",
+        "wednesday": "7:00 pm all classes"
+      }
+    },
+    {
+      "id": "official-kids",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/kids",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:13:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "kids_classes": "Both available during our morning 10:00 service",
+        "wednesday": "7:00 pm"
+      }
+    },
+    {
+      "id": "official-contact",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/contact-us-five",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:14:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_address": "1107 East 11th Street, Trenton, MO 64683",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observed_phone": "(660) 359-4400",
+      "observations": {
+        "email": "firstagtrenton@gmail.com",
+        "office_hours": "9:00-5:00 Monday through Thursday",
+        "prayer_invitation": true
+      }
+    },
+    {
+      "id": "official-connect",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/connect",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:15:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "connection_card": true,
+        "welcome_letter": true,
+        "visitor_gift": true
+      }
+    },
+    {
+      "id": "official-calendar",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/calendar-1",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:16:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "rendered_error": "Embed Block - Enter a valid embed URL or code.",
+        "footer_years": "Copyright 2018, 2019, 2020, 2021"
+      }
+    },
+    {
+      "id": "official-resources",
+      "source_url": "https://www.trentonfirstassemblyofgod.com/resources",
+      "source_type": "first_party_website",
+      "fetched_at": "2026-09-25T18:17:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_domain": "trentonfirstassemblyofgod.com",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "rightnow_media_signup": true,
+        "ios_link": true,
+        "android_link": true
+      }
+    },
+    {
+      "id": "google-business",
+      "source_url": "https://www.google.com/maps/search/?api=1&query_place_id=ChIJ6STlHpH66YcRNkqv5dgBVjQ&query=First%20Assembly%20of%20God%20Church%20Trenton%20MO",
+      "source_type": "local_business_profile",
+      "fetched_at": "2026-09-25T18:18:00Z",
+      "observed_name": "First Assembly of God Church",
+      "observed_address": "1107 E 11th St, Trenton, MO 64683",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observed_postal_code": "64683",
+      "observed_phone": "(660) 359-4400",
+      "observations": {
+        "rating": 4.4,
+        "review_count": 23,
+        "category": "Assemblies of God church",
+        "accessibility_tags": ["wheelchair-accessible parking", "wheelchair-accessible entrance", "wheelchair-accessible toilet"]
+      }
+    },
+    {
+      "id": "nomo-directory",
+      "source_url": "https://www.nomoag.org/s/NOMO-Churches.pdf",
+      "source_type": "denominational_directory",
+      "fetched_at": "2026-09-25T18:19:00Z",
+      "observed_name": "Trenton - First Assembly Of God",
+      "observed_address": "1107 E 11th St, Trenton, MO 64683-2512",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observed_postal_code": "64683",
+      "observed_phone": "(660) 359-4400",
+      "observations": {
+        "email": "firstagtrenton@gmail.com",
+        "directory_printed": "2024-04-11"
+      }
+    },
+    {
+      "id": "ag-news-seniors",
+      "source_url": "https://news.ag.org/en/articles/news/2025/04/churches-encouraged-to-celebrate-seniors-during-month-of-may",
+      "source_type": "denominational_news",
+      "fetched_at": "2026-09-25T18:20:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "published": "2025-04-23",
+        "lead_pastor": "Del Weyer",
+        "ministry_theme": "senior adult ministry"
+      }
+    },
+    {
+      "id": "chamber-easter-2026",
+      "source_url": "https://www.trentonmochamber.com/2026/04/04/494175/community-easter-egg-hunt/",
+      "source_type": "local_chamber_event",
+      "fetched_at": "2026-09-25T18:21:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_address": "1107 E 11th Street, Trenton, MO 64683",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observed_postal_code": "64683",
+      "observations": {
+        "event": "Community Easter Egg Hunt",
+        "event_date": "2026-04-04"
+      }
+    },
+    {
+      "id": "car-show-2026",
+      "source_url": "https://carcruisefinder.com/car-shows/category/missouri/northern-missouri/2026-08/",
+      "source_type": "event_directory",
+      "fetched_at": "2026-09-25T18:22:00Z",
+      "observed_name": "Trenton First Assembly of God",
+      "observed_city": "Trenton",
+      "observed_state": "MO",
+      "observations": {
+        "event": "1st Annual Trenton First Assembly of God Car Show",
+        "event_date": "2026-08-15",
+        "missions_support": true
+      }
+    },
+    {
+      "id": "wrong-trenton-tennessee",
+      "source_url": "https://agpassport.ag.org/documentstation/documentshow/CEAC2B398C1946DC8C3B012B8B1A8D56/2024%20Church%20Directory.pdf",
+      "source_type": "denominational_directory",
+      "fetched_at": "2026-09-25T18:23:00Z",
+      "observed_name": "First Assembly of God",
+      "observed_address": "2210 US Highway 45 Bypass S, Trenton, TN 38382",
+      "observed_city": "Trenton",
+      "observed_state": "TN",
+      "observed_postal_code": "38382",
+      "observed_phone": "(731) 855-1088",
+      "observations": {
+        "purpose": "negative identity regression - must be rejected"
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "scope": "universal",
+      "key": "findability_identity",
+      "rating": 4,
+      "confidence": 0.98,
+      "explanation": "The official domain surfaces for the exact church, and current local/denominational records independently match the Trenton address and phone.",
+      "evidence_basis": "source",
+      "source_ids": ["official-home", "google-business", "nomo-directory"]
+    },
+    {
+      "scope": "universal",
+      "key": "local_presence_reputation",
+      "rating": 3,
+      "confidence": 0.92,
+      "explanation": "The local business profile is established with 23 public reviews and a 4.4/5 rating, while 2025-2026 denominational and community sources show active ministry presence.",
+      "evidence_basis": "source",
+      "source_ids": ["google-business", "ag-news-seniors", "chamber-easter-2026", "car-show-2026"]
+    },
+    {
+      "scope": "universal",
+      "key": "organic_search_visibility",
+      "rating": 3,
+      "confidence": 0.86,
+      "explanation": "Exact-name searches reliably surface the official website and local profile. This public refresh did not include Search Console query data, so broader non-branded search reach remains unverified.",
+      "evidence_basis": "source",
+      "source_ids": ["official-home", "google-business"]
+    },
+    {
+      "scope": "universal",
+      "key": "message_clarity",
+      "rating": 3,
+      "confidence": 0.95,
+      "explanation": "The Exalt, Encourage, Evangelize mission and staff identity are clear. Visitor information loses clarity when service and kids timing disagree across first-party pages.",
+      "evidence_basis": "source",
+      "source_ids": ["official-home", "official-service-times", "official-kids"]
+    },
+    {
+      "scope": "universal",
+      "key": "mobile_experience_performance",
+      "rating": 2,
+      "confidence": 0.45,
+      "explanation": "Public pages are reachable and readable in crawl output, but this refresh could not run a current Lighthouse/CrUX mobile measurement. Treat this rating as provisional and replace it when lab or field performance data is available.",
+      "evidence_basis": "manual_verified",
+      "source_ids": ["official-home"],
+      "raw_value": {
+        "performance_measurement": "not run in this refresh"
+      }
+    },
+    {
+      "scope": "universal",
+      "key": "conversion_readiness",
+      "rating": 2,
+      "confidence": 0.95,
+      "explanation": "Contact and connection paths exist, but a first-time guest does not get one clear Plan Your Visit path, and the broken calendar adds friction to the next-step journey.",
+      "evidence_basis": "source",
+      "source_ids": ["official-contact", "official-connect", "official-calendar", "official-home"]
+    },
+    {
+      "scope": "universal",
+      "key": "measurement_freshness",
+      "rating": 1,
+      "confidence": 0.99,
+      "explanation": "The church is visibly active in 2026 community events, but its own calendar renders an invalid embed message and multiple first-party pages still display a footer ending in 2021.",
+      "evidence_basis": "source",
+      "source_ids": ["official-calendar", "official-home", "chamber-easter-2026", "car-show-2026"],
+      "critical_issue": {
+        "title": "Broken calendar and stale first-party freshness signals",
+        "detail": "An active church currently presents a calendar error and 2021 footer, which can make current ministry look inactive or unreliable."
+      }
+    },
+    {
+      "scope": "sector",
+      "key": "visit_service_information",
+      "rating": 1,
+      "confidence": 0.99,
+      "explanation": "First-party pages conflict: the homepage says Sunday School starts at 10:10 and Kids Church is during the 11:00 second service; the Service Times page says Sunday School is 10:00; the Kids page says kids classes are available during a 10:00 service.",
+      "evidence_basis": "source",
+      "source_ids": ["official-home", "official-service-times", "official-kids"],
+      "critical_issue": {
+        "title": "Conflicting Sunday School and Kids Church times",
+        "detail": "A first-time family can receive different Sunday timing depending on which official page they open."
+      }
+    },
+    {
+      "scope": "sector",
+      "key": "giving",
+      "rating": 2,
+      "confidence": 0.65,
+      "explanation": "The homepage visibly prompts visitors to donate, but this refresh did not independently complete or verify the giving transaction flow.",
+      "evidence_basis": "source",
+      "source_ids": ["official-home"]
+    },
+    {
+      "scope": "sector",
+      "key": "events_groups",
+      "rating": 2,
+      "confidence": 0.96,
+      "explanation": "The church has active ministries and verified 2026 community events, but its own calendar is broken, so current event discovery is stronger on third-party community pages than on the church website.",
+      "evidence_basis": "source",
+      "source_ids": ["official-calendar", "chamber-easter-2026", "car-show-2026"]
+    },
+    {
+      "scope": "sector",
+      "key": "sermons_media_live",
+      "rating": 2,
+      "confidence": 0.60,
+      "explanation": "The website has a resource pathway, but a clearly current official sermon/video channel did not reliably surface in this refresh. Media presence should be confirmed with the church before implementation recommendations.",
+      "evidence_basis": "source",
+      "source_ids": ["official-resources"]
+    },
+    {
+      "scope": "sector",
+      "key": "contact_prayer_help",
+      "rating": 3,
+      "confidence": 0.98,
+      "explanation": "The contact page provides address, phone, email, office hours and an explicit prayer invitation; the connection card gives visitors a follow-up path.",
+      "evidence_basis": "source",
+      "source_ids": ["official-contact", "official-connect"]
+    },
+    {
+      "scope": "sector",
+      "key": "app_email_member_engagement",
+      "rating": 2,
+      "confidence": 0.85,
+      "explanation": "Resources include RightNow Media signup and mobile app links, but a clearly explained email/member-engagement system is not visible from the public website.",
+      "evidence_basis": "source",
+      "source_ids": ["official-resources"]
+    }
+  ]
+}
