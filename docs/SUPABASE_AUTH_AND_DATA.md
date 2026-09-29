@@ -34,6 +34,11 @@ The following migrations have been applied:
 - `supabase/migrations/0009_add_screening_response_persistence.sql`
 - `supabase/migrations/0010_define_visibility_v1_scoring_formula.sql`
 - `supabase/migrations/0011_add_transactional_score_finalizer.sql`
+- `supabase/migrations/0012_add_titan_mail_gateway.sql`
+- `supabase/migrations/0013_index_titan_mail_account_organization.sql`
+- `supabase/migrations/0014_add_titan_reply_to.sql`
+- `supabase/migrations/0015_site_provisional_reports.sql`
+- `supabase/migrations/0016_add_site_screening_save_rpc.sql`
 
 The authenticated `create-organization` Edge Function is deployed using the modern publishable/secret key model. Gateway `verify_jwt` is enabled for authenticated user functions. The client sends its publishable key as `apikey` and the signed-in user's access token as `Authorization: Bearer <user-jwt>`; the function also validates the caller with `auth.getUser()` before privileged work.
 
@@ -203,3 +208,16 @@ The authenticated `start-screening-run` Edge Function creates immutable-at-start
 
 
 The service-only `finalize-screening-score` Edge Function uses secret-key authentication and the transactional `finalize_screening_score` RPC. It is not a browser endpoint.
+
+
+### Provisional site screening persistence
+
+The current guided/site screening can persist completed user-supplied screening snapshots independently of the normalized `visibility-v1` enrichment pipeline.
+
+- Completed site screenings are stored in `public.site_screening_reports`.
+- The browser must save through the authenticated `site_save_screening_report` RPC rather than depending on legacy research/enrichment services.
+- Generate one stable UUID for a completed screening and reuse that same `p_report_id` for retries. The RPC is idempotent for the same authenticated owner/report ID, so a retry does not create a duplicate.
+- The RPC forces `created_by` to `auth.uid()`, validates screening type, organization name, JSON shape/size, and score bounds, and runs as `SECURITY INVOKER` so RLS remains in force.
+- Do not label a screening as saved until the RPC succeeds.
+- Automated research/enrichment may run later, but its failure must not block persistence of the provisional user-supplied report.
+- Direct browser writes to normalized `organizations`, `screening_runs`, `screening_sources`, `screening_findings`, or `screening_reports` remain disallowed; those flows stay behind authenticated/server-side functions.
