@@ -447,6 +447,54 @@ export type Database = {
           },
         ]
       }
+      site_screening_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          display_score: number | null
+          id: string
+          input_snapshot: Json
+          organization_name: string
+          report_snapshot: Json
+          rubric_version: string
+          score_provenance: string
+          screening_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          display_score?: number | null
+          id?: string
+          input_snapshot?: Json
+          organization_name: string
+          report_snapshot: Json
+          rubric_version?: string
+          score_provenance?: string
+          screening_type: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          display_score?: number | null
+          id?: string
+          input_snapshot?: Json
+          organization_name?: string
+          report_snapshot?: Json
+          rubric_version?: string
+          score_provenance?: string
+          screening_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
       titan_mail_accounts: {
         Row: {
           created_at: string
@@ -577,6 +625,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_site_screening_report: {
+        Args: { p_report_id: string }
+        Returns: string
+      }
       finalize_screening_score: {
         Args: {
           p_critical_issues?: Json
@@ -588,6 +640,18 @@ export type Database = {
           report_id: string
           total_score: number
         }[]
+      }
+      site_platform_admin_access: { Args: never; Returns: boolean }
+      site_save_screening_report: {
+        Args: {
+          p_display_score?: number
+          p_input_snapshot: Json
+          p_organization_name: string
+          p_report_id?: string
+          p_report_snapshot: Json
+          p_screening_type: string
+        }
+        Returns: string
       }
     }
     Enums: {
