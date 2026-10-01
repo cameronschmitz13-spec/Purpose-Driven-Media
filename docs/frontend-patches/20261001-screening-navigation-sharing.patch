@@ -1,0 +1,947 @@
+diff --git a/app/api/account-data/route.ts b/app/api/account-data/route.ts
+index d34b8e6..fc7468c 100644
+--- a/app/api/account-data/route.ts
++++ b/app/api/account-data/route.ts
+@@ -21,7 +21,7 @@ export async function GET(request: Request) {
+       const row = await getSiteReport(actor.authorization, organizationId);
+       if (!row || row.screening_type === "business" || !row.report_snapshot.screening) return privateJson({ error: "Report not found." }, 404);
+       const isAdmin = await hasSiteAdminGrant(actor.authorization).catch(() => false);
+-      return privateJson({ screening: organizationReportSnapshot(row), access: { isAdmin, canViewFullReport: isAdmin, reportAccess: "snapshot", roadmapPaidAt: null } });
++      return privateJson({ viewerId:actor.id,screening: organizationReportSnapshot(row), access: { isAdmin, canViewFullReport: isAdmin, reportAccess: "snapshot", roadmapPaidAt: null } });
+     }
+     const rows = await listSiteReports(actor.authorization);
+     return privateJson({
+diff --git a/app/api/report-share/route.ts b/app/api/report-share/route.ts
+new file mode 100644
+index 0000000..deb9f74
+--- /dev/null
++++ b/app/api/report-share/route.ts
+@@ -0,0 +1,20 @@
++import {getSiteReport,privateJson,reportActor,reportShareRpc,sameOrigin,shareTokenHash} from '../../../lib/site-reports';
++export const dynamic='force-dynamic';
++export async function POST(request:Request){
++ if(!sameOrigin(request))return privateJson({error:'Invalid origin.'},403);
++ const actor=await reportActor(request);if(!actor)return privateJson({error:'Sign in to share a saved report.'},401);
++ try{
++  const body=await request.json() as {reportId?:string};
++  const row=await getSiteReport(actor.authorization,body.reportId||'');if(!row)return privateJson({error:'Report not found.'},404);
++  const token=crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-','');
++  const expiresAt=await reportShareRpc('site_create_report_share',{p_report_id:row.id,p_token_hash:await shareTokenHash(token)},actor.authorization);
++  return privateJson({path:`/shared/report/${token}`,expiresAt});
++ }catch{return privateJson({error:'Could not create a share link. Please retry.'},503);}
++}
++export async function DELETE(request:Request){
++ if(!sameOrigin(request))return privateJson({error:'Invalid origin.'},403);
++ const actor=await reportActor(request);if(!actor)return privateJson({error:'Sign in to stop sharing.'},401);
++ try{const {token}=await request.json() as {token?:string};if(!token||!/^[0-9a-f]{64}$/.test(token))return privateJson({error:'Invalid link.'},400);
++ const revoked=await reportShareRpc('site_revoke_report_share',{p_token_hash:await shareTokenHash(token)},actor.authorization);return privateJson({revoked});
++ }catch{return privateJson({error:'Could not stop sharing. Please retry.'},503);}
++}
+diff --git a/app/api/shared-report/route.ts b/app/api/shared-report/route.ts
+new file mode 100644
+index 0000000..06e3166
+--- /dev/null
++++ b/app/api/shared-report/route.ts
+@@ -0,0 +1,12 @@
++import {organizationReportSnapshot,privateJson,reportShareRpc,type SiteReport} from '../../../lib/site-reports';
++export const dynamic='force-dynamic';
++export async function GET(request:Request){
++ const token=new URL(request.url).searchParams.get('token')||'';
++ if(!/^[0-9a-f]{64}$/.test(token))return privateJson({error:'This share link is unavailable.'},404);
++ try{
++ const row=await reportShareRpc('site_read_shared_report',{p_token:token}) as SiteReport|null;
++ if(!row)return privateJson({error:'This share link has expired or stopped sharing.'},404);
++ if(row.screening_type==='business')return privateJson({type:'business',business:row.report_snapshot.business,screening:row.report_snapshot.screening});
++ return privateJson({type:'organization',screening:organizationReportSnapshot(row),viewerId:null,access:{isAdmin:false,canViewFullReport:true,reportAccess:'snapshot',roadmapPaidAt:null}});
++ }catch{return privateJson({error:'This shared report is temporarily unavailable.'},503);}
++}
+diff --git a/app/business/report/[id]/roadmap/page.tsx b/app/business/report/[id]/roadmap/page.tsx
+new file mode 100644
+index 0000000..518d317
+--- /dev/null
++++ b/app/business/report/[id]/roadmap/page.tsx
+@@ -0,0 +1,4 @@
++import {SupabaseBusinessReport} from '../../../../../components/SupabaseBusinessReport';
++export const dynamic='force-dynamic';
++export const metadata={title:'Your Business Visibility Roadmap | Purpose Driven Media',robots:{index:false,follow:false},referrer:'no-referrer'};
++export default async function Page({params}:{params:Promise<{id:string}>}){const {id}=await params;return <SupabaseBusinessReport reportId={id} roadmap/>;}
+diff --git a/app/business/sample/roadmap/page.tsx b/app/business/sample/roadmap/page.tsx
+new file mode 100644
+index 0000000..3e9f45b
+--- /dev/null
++++ b/app/business/sample/roadmap/page.tsx
+@@ -0,0 +1,3 @@
++import {SampleReport} from '../../../../modules/business/components/SampleReport';
++export const metadata={title:'Sample Visibility Roadmap | Purpose Driven Media',robots:{index:false,follow:true}};
++export default function Page(){return <SampleReport roadmap/>;}
+diff --git a/app/organization/roadmap/[id]/page.tsx b/app/organization/roadmap/[id]/page.tsx
+new file mode 100644
+index 0000000..7d214f1
+--- /dev/null
++++ b/app/organization/roadmap/[id]/page.tsx
+@@ -0,0 +1,4 @@
++import {SupabaseOrganizationRoadmap} from '../../../../components/SupabaseOrganizationRoadmap';
++export const dynamic='force-dynamic';
++export const metadata={title:'Your Visibility Roadmap | Purpose Driven Media',robots:{index:false,follow:false},referrer:'no-referrer'};
++export default async function Page({params}:{params:Promise<{id:string}>}){const {id}=await params;return <SupabaseOrganizationRoadmap reportId={id}/>;}
+diff --git a/app/shared/report/[token]/page.tsx b/app/shared/report/[token]/page.tsx
+new file mode 100644
+index 0000000..52c77e0
+--- /dev/null
++++ b/app/shared/report/[token]/page.tsx
+@@ -0,0 +1,4 @@
++import {SharedReport} from '../../../../components/SharedReport';
++export const dynamic='force-dynamic';
++export const metadata={title:'Shared PDM screening',robots:{index:false,follow:false},referrer:'no-referrer'};
++export default async function Page({params}:{params:Promise<{token:string}>}){const {token}=await params;return <SharedReport token={token}/>;}
+diff --git a/app/shared/report/[token]/roadmap/page.tsx b/app/shared/report/[token]/roadmap/page.tsx
+new file mode 100644
+index 0000000..207bde7
+--- /dev/null
++++ b/app/shared/report/[token]/roadmap/page.tsx
+@@ -0,0 +1,4 @@
++import {SharedReport} from '../../../../../components/SharedReport';
++export const dynamic='force-dynamic';
++export const metadata={title:'Shared PDM visibility roadmap',robots:{index:false,follow:false},referrer:'no-referrer'};
++export default async function Page({params}:{params:Promise<{token:string}>}){const {token}=await params;return <SharedReport token={token} roadmap/>;}
+diff --git a/app/unified-report.css b/app/unified-report.css
+index 5f95cda..316654d 100644
+--- a/app/unified-report.css
++++ b/app/unified-report.css
+@@ -522,11 +522,38 @@
+ .pdm-business-app .access-denied button{display:inline-flex;align-items:center;min-height:44px;margin-top:14px;padding:12px 15px;border:0;border-radius:6px;background:var(--cyan);color:#07181c;font:inherit;font-size:.875rem;font-weight:800;cursor:pointer}
+ .pdm-business-app .access-denied button:focus-visible{outline:3px solid #f5cf79;outline-offset:3px}
+ 
+-/* Geographic controls are separate from the media comparison illustration. */
+-.pdm-organization-app .screening-geographic-map{margin:20px 0;border:1px solid #294550;border-radius:16px;overflow:hidden}
+-.pdm-organization-app .screening-geographic-map .live-community-map{position:relative;inset:auto;display:flex;flex-direction:column;overflow:hidden}
+-.pdm-organization-app .screening-geographic-map .live-community-map__tools{position:static;inset:auto;order:-1;display:flex;flex-wrap:wrap;padding:12px 16px;background:#0d202a}
+-.pdm-organization-app .screening-geographic-map .live-community-map__tools button{min-height:44px;font-size:13px}
+-.pdm-organization-app .screening-geographic-map .live-community-map__canvas{height:360px}
+-.pdm-organization-app .screening-geographic-map .live-community-map__layer-notice{position:static;inset:auto;margin:0;padding:12px 16px}
+-@media(max-width:480px){.pdm-organization-app .screening-geographic-map .live-community-map__canvas{height:280px}.pdm-organization-app .screening-geographic-map .live-community-map__tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
++
++/* One compact geographic/link scene with a reserved row for map controls. */
++.pdm-organization-app .community-scene{min-height:0!important;padding-top:76px;overflow:hidden}
++.pdm-organization-app .community-map-body{position:relative;height:430px;isolation:isolate}
++.pdm-organization-app .community-scene .live-community-map{position:absolute;inset:0;z-index:0}
++.pdm-organization-app .community-scene .live-community-map__canvas{position:absolute;inset:76px 0 0;height:auto}
++.pdm-organization-app .community-scene .live-community-map__tools{position:absolute;top:0;left:0;right:0;z-index:30;min-height:76px;box-sizing:border-box;padding:12px;align-content:center;background:#0b243b;border-bottom:1px solid #658ca7;gap:8px}
++.pdm-organization-app .community-scene .live-community-map__tools button{min-height:44px;font-size:14px;padding:10px 12px}
++.pdm-organization-app .community-map-body .community-scene__topline{padding:10px 14px}
++.pdm-organization-app .community-map-body .media-map-node{--node-size:82px!important;font-size:12px;padding:7px}
++.pdm-organization-app .community-map-body .community-core{transform:translate(-50%,-50%) scale(.78)}
++.pdm-organization-app .community-map-body .map-interaction-hint{display:none}
++.pdm-organization-app .community-map-body .map-channel-dock{bottom:36px}
++.pdm-organization-app .community-map-body .map-source-links{font-size:11px}
++.pdm-organization-app .community-map-body .map-scale-note{display:none}
++.pdm-organization-app .curated-report .pdm360-advisor :is(h2,h3,strong,p,a,span,small){color:#c4eaff}
++.pdm-organization-app .curated-report .pdm360-advisor aside a{background:#153d60;color:#d9f1ff;border:1px solid #8fc7e5}
++@media(max-width:620px){.pdm-organization-app .community-scene{padding-top:124px}.pdm-organization-app .community-scene .live-community-map__canvas{top:124px}.pdm-organization-app .community-scene .live-community-map__tools{min-height:124px;display:flex;flex-wrap:wrap}.pdm-organization-app .community-map-body{height:440px}.pdm-organization-app .community-map-body .media-map-node{--node-size:64px!important}.pdm-organization-app .community-map-body .community-core{transform:translate(-50%,-50%) scale(.64)}.pdm-organization-app .community-map-body .media-map-node .media-node-mark{font-size:16px}}
++
++/* One readable roadmap layout for every screening sector. */
++.pdm-app #visibility-roadmap{width:min(1120px,calc(100% - 32px));margin:32px auto;color:#173354}
++.pdm-app #visibility-roadmap .results-heading{display:flex;flex-wrap:wrap;align-items:start;justify-content:space-between;gap:20px}
++.pdm-app #visibility-roadmap h1{font-size:clamp(28px,4vw,44px);line-height:1.12;margin:12px 0}
++.pdm-app #visibility-roadmap .glance-report{padding:24px;margin:20px 0;border:1px solid #c4d6e4;border-radius:16px;background:#fff;box-shadow:0 6px 22px #17335409}
++.pdm-app #visibility-roadmap .glance-report h2{font-size:clamp(22px,3vw,30px);color:#173354;line-height:1.2;margin:10px 0}
++.pdm-app #visibility-roadmap :is(p,li){font-size:16px;line-height:1.65}
++.pdm-app #visibility-roadmap a{color:#145985;overflow-wrap:anywhere}
++.pdm-app #visibility-roadmap .secondary-button{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid #507794;border-radius:9px;background:#eaf3f9;color:#173354;font-size:14px;text-decoration:none}
++.pdm-app #visibility-roadmap a:focus-visible{outline:3px solid #ba871f;outline-offset:3px}
++.share-report-control{display:flex;flex-wrap:wrap;gap:8px;align-items:center;max-width:100%}.share-report-control input{width:100%;min-width:0;padding:10px;border:1px solid #7d97b1;border-radius:6px;font-size:14px}.share-report-control small{flex-basis:100%;line-height:1.5}.share-report-control button{min-height:44px}
++.pdm-organization-app .footprint-section > .section-heading h2{color:#15364d}
++.pdm-organization-app .community-map-body .map-channel-dock{bottom:82px;max-width:calc(100% - 28px);scrollbar-width:thin}
++.pdm-organization-app .community-map-body .map-channel-dock::-webkit-scrollbar{display:block;height:5px}
++.pdm-organization-app .community-scene .live-community-map__status{top:140px;bottom:auto;z-index:8}
++@media(max-width:620px){.pdm-organization-app .community-scene .live-community-map__status{top:200px}.pdm-organization-app .community-map-body .map-channel-dock{bottom:76px}}
+diff --git a/components/BusinessVisibilityRoadmap.tsx b/components/BusinessVisibilityRoadmap.tsx
+new file mode 100644
+index 0000000..8d524de
+--- /dev/null
++++ b/components/BusinessVisibilityRoadmap.tsx
+@@ -0,0 +1,6 @@
++import {VisibilityRoadmap} from '../modules/organization/components/VisibilityRoadmap';
++import {businessRoadmap} from '../lib/business-roadmap';
++import type {ReportBusiness,ReportScreening} from '../modules/business/components/ReportView';
++export function BusinessVisibilityRoadmap({business,screening,sample=false,backHref}:{business:ReportBusiness;screening:ReportScreening;sample?:boolean;backHref?:string}){
++ return <main className="report-main">{sample&&<p className="sample-notice">Sample Roadmap — fictional organization for illustration only.</p>}<VisibilityRoadmap report={{id:screening.publicId,organizationName:business.name,currentScore:screening.totalScore,createdAt:screening.createdAt,publicEvidenceJson:null}} backHref={backHref || (sample?'/business/sample':`/business/report/${encodeURIComponent(screening.publicId)}`)} actions={businessRoadmap(screening)}/></main>;
++}
+diff --git a/components/ShareReportButton.tsx b/components/ShareReportButton.tsx
+new file mode 100644
+index 0000000..c521ab0
+--- /dev/null
++++ b/components/ShareReportButton.tsx
+@@ -0,0 +1,14 @@
++"use client";
++import {useState} from 'react';
++import {pdmFetch} from '../lib/pdm-fetch';
++export function ShareReportButton({reportId,publicPath}:{reportId?:string;publicPath?:string}){
++ const [path,setPath]=useState(publicPath||''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
++ async function share(){setBusy(true);setMessage('');try{
++ let urlPath=path;
++ if(!urlPath){const response=await pdmFetch('/api/report-share',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId})});const data=await response.json() as {path?:string;error?:string};if(!response.ok||!data.path)throw new Error(data.error||'Could not share this report.');urlPath=data.path;setPath(urlPath);}
++ const url=new URL(urlPath,window.location.origin).href;
++ try{await navigator.clipboard.writeText(url);setMessage(publicPath?'Link copied. Opens this report directly.':'Link copied. Opens this report directly; read-only access expires in 30 days.');}catch{setMessage('Your direct report link is ready below.');}
++ }catch(cause){setMessage(cause instanceof Error?cause.message:'Could not share this report.');}finally{setBusy(false);}}
++ async function revoke(){setBusy(true);try{const response=await pdmFetch('/api/report-share',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({token:path.split('/').at(-1)})});const data=await response.json() as {revoked?:boolean};if(!response.ok||!data.revoked)throw new Error();setPath('');setMessage('This link has stopped sharing.');}catch{setMessage('Could not stop sharing. Please retry.');}finally{setBusy(false);}}
++ return <div className="share-report-control no-print"><button className="secondary-button" type="button" disabled={busy} onClick={()=>void share()}>{busy?'Please wait…':'Share report'}</button>{path&&<><input aria-label="Direct read-only report link" readOnly value={typeof window==='undefined'?path:new URL(path,window.location.origin).href} onFocus={event=>event.currentTarget.select()}/>{!publicPath&&<button type="button" disabled={busy} onClick={()=>void revoke()}>Stop sharing this link</button>}</>}<small role="status">{message}</small></div>;
++}
+diff --git a/components/SharedReport.tsx b/components/SharedReport.tsx
+new file mode 100644
+index 0000000..a611001
+--- /dev/null
++++ b/components/SharedReport.tsx
+@@ -0,0 +1,17 @@
++"use client";
++import {useEffect,useState} from 'react';
++import {BrandSectorProvider} from './BrandSector';
++import {ScreeningExperience} from '../modules/organization/app/page';
++import {ReportView,type ReportBusiness,type ReportScreening} from '../modules/business/components/ReportView';
++import type {SavedOrganizationScreening} from '../modules/organization/components/SavedOrganizationReport';
++import {VisibilityRoadmap} from '../modules/organization/components/VisibilityRoadmap';
++import {BusinessVisibilityRoadmap} from './BusinessVisibilityRoadmap';
++type SharedPayload={type:'business';business:ReportBusiness;screening:ReportScreening}|{type:'organization';screening:SavedOrganizationScreening};
++export function SharedReport({token,roadmap=false}:{token:string;roadmap?:boolean}){
++ const [report,setReport]=useState<SharedPayload|null>(null),[error,setError]=useState('');
++ useEffect(()=>{let active=true;void fetch(`/api/shared-report?token=${encodeURIComponent(token)}`,{cache:'no-store',credentials:'omit'}).then(async response=>{const data=await response.json() as SharedPayload&{error?:string};if(!response.ok)throw new Error(data.error||'This share link is unavailable.');if(active)setReport(data);}).catch(cause=>{if(active)setError(cause instanceof Error?cause.message:'This report is unavailable.');});return()=>{active=false;};},[token]);
++ if(error)return <main className="results-wrap"><h1>Shared report unavailable</h1><p role="alert">{error}</p></main>;
++ if(!report)return <main className="results-wrap"><p role="status">Opening the completed report…</p></main>;
++ if(report.type==='business')return <div className="pdm-business-app"><BrandSectorProvider defaultSector="business">{roadmap?<BusinessVisibilityRoadmap business={report.business} screening={report.screening} backHref={`/shared/report/${token}`}/>:<ReportView business={report.business} screening={report.screening} shareToken={token}/>}</BrandSectorProvider></div>;
++ return <div className="pdm-organization-app"><BrandSectorProvider defaultSector={report.screening.organizationType==='nonprofit'?'nonprofit':report.screening.organizationType==='organization'?'organization':'ministry'}>{roadmap?<main><VisibilityRoadmap report={report.screening} backHref={`/shared/report/${token}`}/></main>:<ScreeningExperience shareToken={token}/>}</BrandSectorProvider></div>;
++}
+diff --git a/components/SupabaseBusinessReport.tsx b/components/SupabaseBusinessReport.tsx
+index 7953d41..782474e 100644
+--- a/components/SupabaseBusinessReport.tsx
++++ b/components/SupabaseBusinessReport.tsx
+@@ -6,9 +6,11 @@ import type { User } from "@supabase/supabase-js";
+ import { getSupabaseBrowserClient } from "../lib/supabase-browser";
+ import { ReportView, type ReportBusiness, type ReportScreening } from "../modules/business/components/ReportView";
+ 
++import {BusinessVisibilityRoadmap} from "./BusinessVisibilityRoadmap";
++
+ type ReportPayload = { business: ReportBusiness; screening: ReportScreening; admin?: boolean };
+ 
+-export function SupabaseBusinessReport({ reportId }: { reportId: string }) {
++export function SupabaseBusinessReport({ reportId, roadmap=false }: { reportId: string;roadmap?:boolean }) {
+   const [report, setReport] = useState<ReportPayload | null>(null);
+   const [error, setError] = useState("");
+   const [user, setUser] = useState<User | null>(null);
+@@ -48,7 +50,7 @@ export function SupabaseBusinessReport({ reportId }: { reportId: string }) {
+       });
+       if (!active || principal.current !== expectedPrincipal) return;
+       if (response.status === 401) {
+-        window.location.replace(`/login?return_to=${encodeURIComponent(`/business/report/${reportId}`)}`);
++        window.location.replace(`/login?return_to=${encodeURIComponent(`/business/report/${reportId}${roadmap?"/roadmap":""}`)}`);
+         return;
+       }
+       const payload = await response.json() as ReportPayload & { error?: string };
+@@ -60,5 +62,6 @@ export function SupabaseBusinessReport({ reportId }: { reportId: string }) {
+ 
+   if (error) return <main className="account-hub"><section><span>PRIVATE REPORT</span><h1>We couldn’t open this report.</h1><p>{error}</p><p>If you are opening a client report from the admin dashboard, check that you are signed in with your PDM owner account.</p><a className="account-primary" href="/business/admin">Go to admin sign in →</a></section></main>;
+   if (!report) return <main className="account-hub"><p role="status">Opening your secure report…</p></main>;
++  if(roadmap) return <BusinessVisibilityRoadmap business={report.business} screening={report.screening}/>;
+   return <ReportView business={report.business} screening={report.screening} admin={report.admin === true} />;
+ }
+diff --git a/components/SupabaseOrganizationRoadmap.tsx b/components/SupabaseOrganizationRoadmap.tsx
+new file mode 100644
+index 0000000..b7d2f43
+--- /dev/null
++++ b/components/SupabaseOrganizationRoadmap.tsx
+@@ -0,0 +1,19 @@
++"use client";
++import {useEffect,useState} from 'react';
++import {pdmFetch} from '../lib/pdm-fetch';
++import {getSupabaseBrowserClient} from '../lib/supabase-browser';
++import {VisibilityRoadmap} from '../modules/organization/components/VisibilityRoadmap';
++import type {SavedOrganizationScreening} from '../modules/organization/components/SavedOrganizationReport';
++export function SupabaseOrganizationRoadmap({reportId}:{reportId:string}){
++ const [report,setReport]=useState<SavedOrganizationScreening|null>(null),[error,setError]=useState('');
++ useEffect(()=>{
++  let active=true,generation=0;
++  async function load(){const request=++generation;setReport(null);setError('');try{const response=await pdmFetch(`/api/account-data?organization_report=${encodeURIComponent(reportId)}`);if(!active||request!==generation)return;if(response.status===401){window.location.replace(`/login?return_to=${encodeURIComponent(`/organization/roadmap/${reportId}`)}`);return;}const data=await response.json() as {screening?:SavedOrganizationScreening;error?:string};if(!response.ok||!data.screening)throw new Error(data.error||'This saved screening is unavailable.');if(active&&request===generation)setReport(data.screening);}catch(cause){if(active&&request===generation)setError(cause instanceof Error?cause.message:'This saved screening is unavailable.');}}
++  void load();
++  const {data}=getSupabaseBrowserClient().auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'||event==='SIGNED_IN'||event==='USER_UPDATED')void load();});
++  return()=>{active=false;generation++;data.subscription.unsubscribe();};
++ },[reportId]);
++ if(error)return <main className="results-wrap"><h1>Roadmap unavailable</h1><p role="alert">{error}</p><a href={`/organization?report=${encodeURIComponent(reportId)}`}>Back to the screening</a></main>;
++ if(!report)return <main className="results-wrap"><p role="status">Opening your screening’s visibility roadmap…</p></main>;
++ return <main><VisibilityRoadmap report={report} backHref={`/organization?report=${encodeURIComponent(report.id)}&view=full#screening`}/></main>;
++}
+diff --git a/lib/business-roadmap.ts b/lib/business-roadmap.ts
+new file mode 100644
+index 0000000..c558fc7
+--- /dev/null
++++ b/lib/business-roadmap.ts
+@@ -0,0 +1,15 @@
++import {safeRoadmapUrl,type RoadmapAction} from './visibility-roadmap';
++import type {ReportScreening} from '../modules/business/components/ReportView';
++
++export function businessRoadmap(screening:ReportScreening):RoadmapAction[]{
++  const array=(value:string):Array<Record<string,unknown>>=>{try{const parsed=JSON.parse(value);return Array.isArray(parsed)?parsed:[];}catch{return [];}};
++  const evidence=array(screening.evidenceJson),recommendations=array(screening.recommendationsJson);
++  const supported=recommendations.filter(r=>evidence.some(e=>e.category===r.category&&e.status==='warning'&&(!e.assessment||e.assessment==='observed'))).filter((r,i,all)=>all.findIndex(other=>other.category===r.category)===i).slice(0,3);
++  const actions:RoadmapAction[]=supported.map((r,i)=>{
++    const records=evidence.filter(e=>e.category===r.category&&e.status==='warning'&&(!e.assessment||e.assessment==='observed'));
++    return {week:`Week ${i+1} · ${String(r.category)}`,title:typeof r.title==='string'?r.title:'Verify this recorded gap',owner:'Suggested: business owner or assigned team member',basis:records.map(e=>String(e.detail||e.label||'Recorded observation')).join(' '),check:typeof r.action==='string'?`${r.action} Test the updated customer path and retain the source and completion date.`:'Confirm the observation with its original source, then choose and test the smallest correction.',sources:[...new Set(records.flatMap(e=>{const url=safeRoadmapUrl(e.source);return url?[url]:[];}))]};
++  });
++  if(!actions.length)actions.push({week:'Week 1 · Verify',title:'Establish the missing evidence',owner:'Suggested: business owner',basis:'This saved screening has no supported observed-gap recommendation. Unknown evidence cannot establish a defect.',check:'Check the submitted website and listings, record original evidence, and run a new dated screening when ready.',sources:[]});
++  actions.push({week:'Week 4 · Review',title:'Measure the next step and review progress',owner:'Suggested: business owner',basis:`Saved Visibility Score: ${screening.totalScore}/100. The plan preserves this baseline.`,check:'Test the primary inquiry or purchase path, record completed changes, and compare a new screening using the same rubric. Do not infer revenue or ranking gains from the score.',sources:[]});
++  return actions;
++}
+diff --git a/lib/site-reports.ts b/lib/site-reports.ts
+index 11d704c..fd993e5 100644
+--- a/lib/site-reports.ts
++++ b/lib/site-reports.ts
+@@ -89,3 +89,12 @@ export function organizationReportSnapshot(row: SiteReport) {
+   if (!snapshot) return null;
+   return { ...snapshot, id: row.id, organizationName: row.organization_name, currentScore: row.display_score, createdAt: row.created_at };
+ }
++
++export async function reportShareRpc(name: "site_create_report_share" | "site_revoke_report_share" | "site_read_shared_report", body: Record<string,string>, authorization = "") {
++  const response = await reportFetch(authorization, `rpc/${name}`, {method:"POST",body:JSON.stringify(body)});
++  return response.json();
++}
++export async function shareTokenHash(token:string) {
++  const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
++  return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
++}
+diff --git a/modules/business/components/ReportActions.tsx b/modules/business/components/ReportActions.tsx
+index 61804fe..c59c0d5 100644
+--- a/modules/business/components/ReportActions.tsx
++++ b/modules/business/components/ReportActions.tsx
+@@ -1,9 +1,10 @@
+ "use client";
++import {ShareReportButton} from "../../../components/ShareReportButton";
+ import { useEffect, useRef, useState } from "react";
+ import { AnimatePresence, m } from "motion/react";
+ import { pdmMotion } from "./MotionSystem";
+ 
+-export function ReportActions({ sample = false }: { sample?: boolean }) {
++export function ReportActions({ sample = false,reportId,shared=false }: { sample?: boolean;reportId?:string;shared?:boolean }) {
+   const [copied, setCopied] = useState(false);
+   const [mobilePrintOpen, setMobilePrintOpen] = useState(false);
+   const closeRef = useRef<HTMLButtonElement>(null);
+@@ -52,8 +53,9 @@ export function ReportActions({ sample = false }: { sample?: boolean }) {
+   }
+ 
+   return <>
+-    <p className="pdm-share-notice">{sample ? "This fictional sample is public." : "Private report. Opening this link requires an authorized PDM account."}</p>
+-    <div className="report-actions"><button onClick={copyLink}>{copied ? "Link copied" : "Copy report link"}</button><button ref={printRef} className="bright" onClick={startPrint}>Print / save PDF</button></div>
++    <p className="pdm-share-notice">{sample ? "This fictional sample is public." : shared ? "Shared read-only report. This link opens the completed screening directly." : "Private report. Opening this link requires an authorized PDM account."}</p>
++    {!sample&&!shared&&reportId&&<ShareReportButton reportId={reportId}/>}
++    <div className="report-actions"><button onClick={copyLink}>{copied ? "Link copied" : sample || shared ? "Share report" : "Copy private report link"}</button><button ref={printRef} className="bright" onClick={startPrint}>Print / save PDF</button></div>
+     <AnimatePresence>
+     {mobilePrintOpen && <m.div className="mobile-print-modal" role="dialog" aria-modal="true" aria-labelledby="mobile-print-title" onClick={() => setMobilePrintOpen(false)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={pdmMotion.immediate}>
+       <m.section onClick={(event) => event.stopPropagation()} onKeyDown={trapDialogFocus} initial={{opacity:0,y:10,scale:.985}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:6,scale:.99}} transition={pdmMotion.standard}>
+diff --git a/modules/business/components/ReportView.tsx b/modules/business/components/ReportView.tsx
+index c70bb4f..a59d688 100644
+--- a/modules/business/components/ReportView.tsx
++++ b/modules/business/components/ReportView.tsx
+@@ -93,11 +93,13 @@ export function ReportView({
+   screening,
+   admin = false,
+   sample = false,
++  shareToken,
+ }: {
+   business: ReportBusiness;
+   screening: ReportScreening;
+   admin?: boolean;
+   sample?: boolean;
++  shareToken?:string;
+ }) {
+   const scores = parse<Record<DimensionKey, number>>(screening.scoresJson, {
+     findability: 0,
+@@ -287,13 +289,13 @@ export function ReportView({
+             </div>
+           </div>
+           <div className="report-title-actions no-print">
+-            <Link
++            {!shareToken && <Link
+               className="fresh-screening-link"
+               href={sample ? "/screening/business" : `/business?rerun=${screening.publicId}#screening`}
+             >
+               {sample ? "Start my own screening →" : "Run fresh screening ↻"}
+-            </Link>
+-            <ReportActions sample={sample} />
++            </Link>}
++            <ReportActions sample={sample} reportId={screening.publicId} shared={Boolean(shareToken)} />
+           </div>
+         </section>
+ 
+@@ -301,7 +303,7 @@ export function ReportView({
+           <a href="#score-overview">Overview</a>
+           <a href="#service-area">3-D market map</a>
+           <a href="#category-leader-pattern">Category Leader Pattern</a>
+-          <a href="#action-plan">View your tailored visibility roadmap</a>
++          <Link href={shareToken ? `/shared/report/${shareToken}/roadmap` : sample ? "/business/sample/roadmap" : `/business/report/${encodeURIComponent(screening.publicId)}/roadmap`}>View your tailored visibility roadmap</Link>
+           <a href="#pdm360-advisor">Advisor</a>
+           <details className="report-jumps-more"><summary>More sections</summary><div><a href="#area-scores">Score by area</a><a href="#buyer-path">Buyer path</a><a href="#visibility-rubric">Scoring rubric</a><a href="#public-footprint">Public sources</a><a href="#business-pricing">Next step</a></div></details>
+         </nav>
+diff --git a/modules/business/components/SampleReport.tsx b/modules/business/components/SampleReport.tsx
+index 3b165f9..6bffda2 100644
+--- a/modules/business/components/SampleReport.tsx
++++ b/modules/business/components/SampleReport.tsx
+@@ -1,3 +1,4 @@
++import {BusinessVisibilityRoadmap} from "../../../components/BusinessVisibilityRoadmap";
+ import { ReportView } from "./ReportView";
+ import type {Evidence,AnalysisResult} from "../lib/analyzer";
+ const scores={findability:13,clarity:10,trust:4,consistency:10,conversion:8};
+@@ -11,6 +12,7 @@ const recommendations:AnalysisResult["recommendations"]=[
+  {category:"conversion",title:"Make requesting a quote easier",action:"Place a clear Request a quote link beside your service description. Check that it opens the intended contact form.",impact:"High"},
+  {category:"clarity",title:"Explain where you work",action:"List the towns or area you actually serve. Ask the owner to confirm that the wording is accurate.",impact:"High"},
+  {category:"trust",title:"Add verifiable proof",action:"Link applicable credentials or an approved example of your work. Use only claims and client materials you can substantiate.",impact:"Medium"}];
+-export function SampleReport(){
+-  return <ReportView sample business={{name:"Example Home Services",industry:"Home services",size:"Small business",reach:"Local or service area",businessModel:"Service business",customerType:"Homeowners",conversionGoal:"Quote requests",growthGoal:"More relevant inquiries",location:"",website:"",googleUrl:"",socialUrl:"",directoryUrl:"",logoUrl:"",logoAuthorized:false,currentScore:45,lowestScore:45,highestScore:45,screeningCount:1}} screening={{publicId:"sample-report-only",totalScore:45,potentialScore:65,confidence:85,scoresJson:JSON.stringify(scores),evidenceJson:JSON.stringify(evidence),recommendationsJson:JSON.stringify(recommendations),strengthsJson:JSON.stringify(["Illustrative: a service page explains the trade.","Illustrative: the supplied contact details agree."]),gapsJson:JSON.stringify(["Illustrative: make the request-a-quote action more visible."]),researchJson:JSON.stringify({signalsReviewed:36,pagesChecked:5,limitations:["Fictional sample. No organization was screened and no market results were measured."]}),createdAt:"2026-09-01T12:00:00Z"}} />;
++export function SampleReport({roadmap=false}:{roadmap?:boolean}={}){
++ const View=roadmap?BusinessVisibilityRoadmap:ReportView;
++  return <View sample business={{name:"Example Home Services",industry:"Home services",size:"Small business",reach:"Local or service area",businessModel:"Service business",customerType:"Homeowners",conversionGoal:"Quote requests",growthGoal:"More relevant inquiries",location:"",website:"",googleUrl:"",socialUrl:"",directoryUrl:"",logoUrl:"",logoAuthorized:false,currentScore:45,lowestScore:45,highestScore:45,screeningCount:1}} screening={{publicId:"sample-report-only",totalScore:45,potentialScore:65,confidence:85,scoresJson:JSON.stringify(scores),evidenceJson:JSON.stringify(evidence),recommendationsJson:JSON.stringify(recommendations),strengthsJson:JSON.stringify(["Illustrative: a service page explains the trade.","Illustrative: the supplied contact details agree."]),gapsJson:JSON.stringify(["Illustrative: make the request-a-quote action more visible."]),researchJson:JSON.stringify({signalsReviewed:36,pagesChecked:5,limitations:["Fictional sample. No organization was screened and no market results were measured."]}),createdAt:"2026-09-01T12:00:00Z"}} />;
+ }
+diff --git a/modules/organization/app/page.tsx b/modules/organization/app/page.tsx
+index d06620f..2de6f64 100644
+--- a/modules/organization/app/page.tsx
++++ b/modules/organization/app/page.tsx
+@@ -1,4 +1,5 @@
+ "use client";
++import {ShareReportButton} from "@/components/ShareReportButton";
+ import { pdmFetch } from "@/lib/pdm-fetch";
+ import { FacebookMentions } from "../../../components/FacebookMentions";
+ 
+@@ -9,7 +10,7 @@ import { PdmOfferNotice } from "../components/PdmOfferNotice";
+ import { PdmDataNotice } from "../components/PdmDataNotice";
+ import { PdmHeader } from "../components/PdmHeader";
+ import { hardenEvidenceIdentity } from "../../../lib/evidence-identity";
+-import { SavedOrganizationReport, type SavedOrganizationScreening } from "../components/SavedOrganizationReport";
++import { type SavedOrganizationScreening } from "../components/SavedOrganizationReport";
+ import { getSupabaseBrowserClient } from "../../../lib/supabase-browser";
+ import { readPendingReport, saveScreeningReport, type PendingScreeningReport } from "../../../lib/save-screening-report";
+ 
+@@ -852,16 +853,18 @@ function ScreeningProgress({ current }: { current: number }) {
+   return <nav className="screening-progress no-print" aria-label="Screening progress">{stages.map((stage, index) => <div className={`${index === current ? "is-current" : ""}${index < current ? " is-complete" : ""}`} key={stage} aria-current={index === current ? "step" : undefined}><b>{index < current ? "✓" : index + 1}</b><span>{stage}</span></div>)}</nav>;
+ }
+ 
+-export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType }) {
+-  const [analysisTimestamp] = useState(() => Date.now());
+-  const [view, setView] = useState<"intake" | "frequency" | "analyzing" | "results" | "saved">("intake");
++export function ScreeningExperience({ forcedOrgType,shareToken }: { forcedOrgType?: OrgType;shareToken?:string }) {
++  const [analysisTimestamp,setAnalysisTimestamp] = useState(() => Date.now());
++  const [view, setView] = useState<"intake" | "frequency" | "analyzing" | "results" | "saved">(shareToken ? "analyzing" : "intake");
+   const [savedReport, setSavedReport] = useState<SavedScreeningRecord | null>(null);
+-  const [reportView,setReportView]=useState<'full'|'roadmap'>('full');
++
+   const parentReportIdRef=useRef<string|null>(null);
++  const reportPrincipalRef=useRef<string|null>(null);
+   useEffect(() => {
+-    if (!savedReport) return;
+-    const { data } = getSupabaseBrowserClient().auth.onAuthStateChange((event) => {
++    if (!savedReport || shareToken) return;
++    const { data } = getSupabaseBrowserClient().auth.onAuthStateChange((event,session) => {
+       if (event !== "SIGNED_OUT" && event !== "SIGNED_IN" && event !== "USER_UPDATED") return;
++      if(session?.user.id===reportPrincipalRef.current) return;
+       setSavedReport(null);
+       setView("intake");
+       setIntakeError("Your sign-in changed. Reopen the saved report with the authorized account.");
+@@ -1041,7 +1044,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+     const fitLabel = contextFit >= 90 ? "Primary fit" : contextFit >= 78 ? "Strong fit" : contextFit >= 64 ? "Supporting fit" : "Selective role";
+     return { key, label: linkLabels[key], ...mediaProfiles[key], impact, contextFit, scoreImpact, fitLabel, source: "Submitted", currentStrength, potentialVisibility, prominence, opportunityGap, rank: 0 };
+   });
+-  const mediaFootprint: MediaFootprintItem[] = mediaFootprintUnranked
++  const mediaFootprint: MediaFootprintItem[] = (savedReport as SavedScreeningRecord & {mediaFootprintSnapshot?:MediaFootprintItem[]})?.mediaFootprintSnapshot || mediaFootprintUnranked
+     .sort((a, b) => b.prominence - a.prominence || b.currentStrength - a.currentStrength)
+     .map((item, index) => ({ ...item, rank: index + 1 }));
+   const strongestCurrentMedia = [...mediaFootprint].sort((a, b) => b.currentStrength - a.currentStrength)[0] ?? null;
+@@ -1241,7 +1244,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+     setPinnedMediaKey(next);
+     setActiveMediaKey(next);
+   };
+-  const breakdown = useMemo<ScoreItem[]>(() => {
++  const calculatedBreakdown = useMemo<ScoreItem[]>(() => {
+     const sourceSummary = [websiteSubmitted && "website", hasGoogle && "Google", hasFacebook && "Facebook", channels.instagram && "Instagram", channels.youtube && "YouTube", channels.linkedin && "LinkedIn", channels.tiktok && "TikTok", links.other.trim() && "other public page"].filter(Boolean).join(", ");
+     const makeCheckpoint = (id: string, label: string, value: number, evidence: string): CriterionScore => ({ id, label, points: checkpointScore(value), evidence });
+     const currentRhythm = averagePostingScore >= 19 ? 4 : averagePostingScore >= 16 ? 3 : averagePostingScore >= 10 ? 2 : averagePostingScore >= 5 ? 1 : 0;
+@@ -1359,14 +1362,21 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+     return checks.slice(0, 10);
+   }, [averagePostingScore, broadReach, channels, city, communityProfile.label, hasAnyHub, hasFacebook, hasGoogle, orgType, primaryHubLabel, ruralLike, searchableHub, serviceReachProfile.label, signals, submittedSocials, websiteReached, websiteSubmitted]);
+ 
+-  const score = breakdown.reduce((sum, item) => sum + item.points, 0);
++  const recordedCategories = savedReport?.scoringSnapshot?.categoryScores || (savedReport ? parseSavedArray<ScoreItem>(savedReport.categoryScoresJson) : []);
++  const breakdown:ScoreItem[] = savedReport ? recordedCategories.map((item,index)=>({
++    ...calculatedBreakdown.find(current=>current.id === (item as ScoreItem).id || current.category === item.category) || calculatedBreakdown[index],
++    ...item,
++    checkpoints:(item as ScoreItem).checkpoints || [],
++    evidence:(item as ScoreItem).evidence || 'Checkpoint evidence was not recorded with this historical result.',
++  })) : calculatedBreakdown;
++  const score = savedReport?.currentScore ?? breakdown.reduce((sum, item) => sum + item.points, 0);
+   const ranked = [...breakdown].sort((a, b) => a.points - b.points);
+   const strongestCheckpoints = breakdown.flatMap((item) => item.checkpoints.map((checkpoint) => ({ ...checkpoint, category: item.category }))).sort((a, b) => b.points - a.points).slice(0, 3);
+   const weakestCheckpoints = breakdown.flatMap((item) => item.checkpoints.map((checkpoint) => ({ ...checkpoint, category: item.category }))).sort((a, b) => a.points - b.points).slice(0, 3);
+   const checkpointPool = breakdown.flatMap((item) => item.checkpoints);
+   const mostlyEffectiveProjection = checkpointPool.reduce((sum, checkpoint) => sum + Math.max(3, checkpoint.points), 0);
+   const completeCheckpointOpportunity = Math.min(2, checkpointPool.filter((checkpoint) => checkpoint.points === 3).length);
+-  const projectedScore = Math.max(score, Math.min(95, score + 30, mostlyEffectiveProjection + completeCheckpointOpportunity));
++  const projectedScore = savedReport?.potentialScore ?? Math.max(score, Math.min(95, score + 30, mostlyEffectiveProjection + completeCheckpointOpportunity));
+   const projectedLift = Math.max(0, projectedScore - score);
+   const projectedAreaScores = new Map<ScoreId, number>(breakdown.map((item) => [item.id, item.points]));
+   let remainingProjectedLift = projectedLift;
+@@ -1528,7 +1538,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   const recommendedPackage = servicePackages.find((item) => item.id === recommendedPackageId) ?? servicePackages[1];
+ 
+   useEffect(() => {
+-    if (view !== "results" || screeningSaveState !== "idle") return;
++    if (savedReport || view !== "results" || screeningSaveState !== "idle") return;
+     const screeningId = screeningIdRef.current ?? crypto.randomUUID();
+     screeningIdRef.current = screeningId;
+     if (savedScreeningRef.current === screeningId) return;
+@@ -1561,6 +1571,8 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+       locationSnapshot: locationData,
+       communitySnapshot: communityData,
+       socialSnapshot: socialData,
++      landmarkSnapshot:landmarkData,
++      mediaFootprintSnapshot:mediaFootprint,
+       thirdPartyCoverageSnapshot: { score: publicEvidence?.available ? thirdPartyCoverageScore : null, method: "legacy-contextual-coverage-v1", evidenceCount: thirdPartyEvidence.length, credibleCount: credibleThirdPartyCount, recentCount: recentThirdPartyCount, contextualCoverageTarget, breadth:coverageBreadthScore,credibility:coverageCredibilityScore,freshness:coverageFreshnessScore },
+       scoringSnapshot: { rubricVersion: "legacy-site-v1", categoryScores: breakdown, totalScore: score, calculatedAt: new Date(analysisTimestamp).toISOString() },
+       publicEvidence: publicEvidence
+@@ -1618,6 +1630,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   };
+ 
+   const runAnalysis = async (override?: AnalysisInput) => {
++    setAnalysisTimestamp(Date.now());
+     const workingOrgName = override?.organizationName ?? orgName.trim();
+     const workingAlternateNames = override?.alternateNames ?? alternateNames.trim();
+     const workingOrgType = override?.organizationType ?? orgType;
+@@ -1798,6 +1811,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   };
+ 
+   const refreshLiveCommunity = useCallback(async () => {
++    if(savedReport) return;
+     const requestedLocation = city.trim();
+     if (!requestedLocation || communityRefreshInFlightRef.current) return;
+     communityRefreshInFlightRef.current = true;
+@@ -1846,16 +1860,16 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+     } finally {
+       communityRefreshInFlightRef.current = false;
+     }
+-  }, [city, serviceReach]);
++  }, [city, serviceReach, savedReport]);
+ 
+   useEffect(() => {
+-    if (view !== "results" || !city.trim() || communityData?.available) return;
++    if (savedReport || view !== "results" || !city.trim() || communityData?.available) return;
+     const retry = window.setTimeout(() => { void refreshLiveCommunity(); }, 350);
+     return () => window.clearTimeout(retry);
+   }, [city, communityData?.available, refreshLiveCommunity, view]);
+ 
+   useEffect(() => {
+-    if (view !== "results" || !city.trim()) return;
++    if (savedReport || view !== "results" || !city.trim()) return;
+     const refreshWhenVisible = () => {
+       if (document.visibilityState === "visible" && !communityData?.available) void refreshLiveCommunity();
+     };
+@@ -1868,12 +1882,12 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   }, [city, communityData?.available, refreshLiveCommunity, view]);
+ 
+   useEffect(() => {
+-    const searchParams = new URLSearchParams(window.location.search);
++    const searchParams = new URLSearchParams(shareToken ? "" : window.location.search);
+     const requestedType = searchParams.get("type")?.trim().toLowerCase() ?? "";
+     const preset = searchParams.get("preset")?.trim().toLowerCase() ?? "";
+     const rerunId = searchParams.get("rerun")?.trim() ?? "";
+     const reportId = searchParams.get("report")?.trim() ?? "";
+-    setReportView(searchParams.get('view')==='roadmap'?'roadmap':'full');
++    if(reportId && searchParams.get('view')==='roadmap'){window.location.replace(reportId==='lifepoint-curated-2026'?'/organization/reports/lifepoint/roadmap':`/organization/roadmap/${encodeURIComponent(reportId)}`);return;}
+     if (!forcedOrgType && (requestedType === "church" || requestedType === "nonprofit" || requestedType === "organization")) setOrgType(requestedType);
+     if (preset === "lifepoint") {
+       const presetFrame = window.requestAnimationFrame(() => {
+@@ -1896,7 +1910,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+       window.location.replace("/organization/reports/lifepoint");
+       return;
+     }
+-    const requestedId = rerunId || reportId;
++    const requestedId = shareToken || rerunId || reportId;
+     const isFreshRerun = Boolean(rerunId);
+     if (!/^[a-zA-Z0-9-]{12,96}$/.test(requestedId)) return;
+     let cancelled = false;
+@@ -1905,13 +1919,14 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+       setIntakeError("");
+     });
+ 
+-    void pdmFetch(`/api/account-data?organization_report=${encodeURIComponent(requestedId)}`)
++    void (shareToken ? fetch : pdmFetch)(shareToken ? `/api/shared-report?token=${encodeURIComponent(shareToken)}` : `/api/account-data?organization_report=${encodeURIComponent(requestedId)}`, shareToken ? {cache:"no-store",credentials:"omit"} : undefined)
+       .then(async (response) => {
+         if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? "Sign in with the account connected to this screening." : response.status === 404 ? "The saved report could not be found." : "The report service is temporarily unavailable. Please retry.");
+-        return response.json() as Promise<{ screening: SavedScreeningRecord; progress?: ClientProgress | null; access?: ReportAccessState }>;
++        return response.json() as Promise<{viewerId:string; screening: SavedScreeningRecord; progress?: ClientProgress | null; access?: ReportAccessState }>;
+       })
+-      .then(async ({ screening, progress, access }) => {
++      .then(async ({ screening, progress, access,viewerId }) => {
+         if (cancelled) return;
++        reportPrincipalRef.current=viewerId;
+         setClientProgress(progress ?? null);
+         setReportAccess(access ?? { isAdmin: false, canViewFullReport: false, reportAccess: "snapshot", roadmapPaidAt: null });
+         const restoredLinks: Record<LinkKey, string> = { website: "", google: "", facebook: "", instagram: "", youtube: "", linkedin: "", tiktok: "", other: "" };
+@@ -1969,9 +1984,28 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+         }
+         screeningIdRef.current = screening.id;
+         savedScreeningRef.current = screening.id;
++        setOrgName(screening.organizationName);
++        setCity(screening.submittedLocation);
++        setCommunityContext(["rural","small_town","regional","metro"].includes(screening.communityContext)?screening.communityContext as CommunityContext:"rural");
++        setServiceReach(["local","county","multi_county","broad"].includes(screening.serviceReach)?screening.serviceReach as ServiceReach:"local");
++        setLinks(restoredLinks);
++        setChannelUpdates(restoredUpdates);
++        setAlternateNames(restoredAlternateNames);
++        setReferenceLinks(restoredReferenceLinks);
++        setAnalysis(screening.websiteAnalysis ? {...screening.websiteAnalysis,signals:{...emptySignals,...(screening.websiteAnalysis as WebsiteAnalysis).signals}} as WebsiteAnalysis : null);
++        setLocationData(screening.locationSnapshot as LocationData || null);
++        setCommunityData(screening.communitySnapshot as CommunityData || null);
++        setSocialData((screening as SavedScreeningRecord & {socialSnapshot?:SocialData}).socialSnapshot || null);
++        setLandmarkData((screening as SavedScreeningRecord & {landmarkSnapshot?:LandmarkData}).landmarkSnapshot || null);
++        try {
++          const evidence=screening.publicEvidenceJson?JSON.parse(screening.publicEvidenceJson):null;
++          setPublicEvidence(evidence?{...evidence,results:evidence.results||[],reviewResults:evidence.reviewResults||[],searchNames:evidence.searchNames||[],recurringThemes:evidence.recurringThemes||[],publicAddressReferences:evidence.publicAddressReferences||[]}:null);
++        } catch {setPublicEvidence(null);}
++        setAnalysisTimestamp(new Date(screening.createdAt).getTime());
++        setScreeningSaveState("saved");
+         setOrgType(screening.organizationType === "organization" || screening.organizationType === "nonprofit" ? screening.organizationType : "church");
+         setSavedReport(screening);
+-        setView("saved");
++        setView("results");
+       })
+       .catch((error: unknown) => {
+         if (cancelled) return;
+@@ -1985,6 +2019,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   }, []);
+ 
+   const reset = () => {
++    setSavedReport(null);
+     setRerunNotice("");
+     parentReportIdRef.current=null;
+     setView("intake"); setOrgName(""); setAlternateNames(""); setOrgType(forcedOrgType ?? "church"); setCity(""); setCommunityContext("rural"); setServiceReach("local"); setChannelUpdates(createEmptyChannelUpdates());
+@@ -1994,6 +2029,8 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+   };
+ 
+   const reviseScreening = () => {
++    parentReportIdRef.current=savedReport?.id || screeningIdRef.current;
++    setSavedReport(null);
+     setAnalysis(null);
+     setLocationData(null);
+     setLandmarkData(null);
+@@ -2018,7 +2055,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+       submittedYouTube ? `• YouTube rhythm — ${youtubeSnapshot?.medianDaysBetweenPosts !== undefined ? `median ${youtubeSnapshot.medianDaysBetweenPosts} days between recent uploads` : recencyLabelFor(youtubeRhythm)}; reported frequency — ${frequencyLabelFor(youtubeFrequency).toLowerCase()}; subscribers — ${youtubeSnapshot?.subscribersText || "not publicly observed"}; median recent views — ${formatCount(youtubeSnapshot?.medianViews)}; resource-oriented recent titles — ${youtubeSnapshot?.resourceUsePct === undefined ? "not observed" : `${youtubeSnapshot.resourceUsePct}%`}.` : "• YouTube — not submitted and not scored as a missing requirement.",
+       `• Digital footprint — ${activeLinks.length} submitted channels, ${outsideMentionCount} outside mentions, and ${reviewResults.length} public review signals.`,
+       `• Public review sample — ${reputationReading}${reviewResults.length ? ` Sources: ${reviewResults.slice(0, 4).map((item) => `${item.reviewPlatform || item.sourceName} (${item.sentiment || "unrated"}): ${item.title}`).join(" | ")}.` : ""}`,
+-      `• Third-party references — ${publicEvidenceReading}${publicEvidence?.results.length ? ` Top matches: ${publicEvidence.results.slice(0, 4).map((item) => `${item.sourceName}: ${item.title}`).join(" | ")}.` : ""}`,
++      `• Third-party references — ${publicEvidenceReading}${publicEvidence?.results?.length ? ` Top matches: ${publicEvidence.results.slice(0, 4).map((item) => `${item.sourceName}: ${item.title}`).join(" | ")}.` : ""}`,
+     ];
+     const report = [
+       "Presented by Purpose Driven Media", "Christ-centered communication. Clear stewardship. Practical next steps.", `${orgName} — Visibility Deep Dive`,
+@@ -2087,13 +2124,14 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+     limitations: ["Public evidence only; no private analytics or internal ministry records are accessed.", "ACS estimates and official geographic boundaries provide planning context; they do not change the visibility score and may not perfectly match an organization's actual audience.", "Review snippets, ratings, counts, and address references must be verified at their linked source.", ...(publicEvidence?.limitations ?? []), "The screening does not measure doctrine, spiritual faithfulness, fruitfulness, attendance, traffic, or conversions."],
+   };
+ 
++  if(shareToken && !savedReport) return <main className="results-wrap"><h1>Shared report</h1><p role={intakeError?"alert":"status"}>{intakeError || "Opening the completed screening…"}</p></main>;
+   return (
+     <main id="main-content" className={`site-shell audience-shell audience-shell--${orgType}`}>
+       <a className="skip-link" href="#screening">Skip to the visibility screening</a>
+       <BrandBanner compact={view === "results"} orgType={orgType} />
+       {pendingReport && view === "intake" && <div className="screening-save-note" role="status">A completed report for {pendingReport.organizationName} is waiting to save. <button type="button" disabled={screeningSaveState === "saving"} onClick={() => void retryPendingReport()}>Retry Save</button>{screeningSaveState === "error" && <span role="alert"> Save failed; your report is still here.</span>}</div>}
+ 
+-      {view === "saved" && savedReport && <SavedOrganizationReport screening={savedReport} canViewFullReport={reportAccess.canViewFullReport} roadmap={reportView==='roadmap'} />}
++
+ 
+       {view === "intake" && (
+         <section className="intro-wrap audit-intro" id="screening">
+@@ -2201,7 +2239,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+             <footer className="print-report__footer"><p><strong>Evidence rule:</strong> Public website and YouTube evidence overrides contradictory self-reported timing. Missing social accounts are not automatic deficiencies. Private Facebook analytics were not guessed.</p><div><strong>Purpose Driven Media Group LLC © 2026</strong><span>purposedrivenmedia.group</span><span>(636) 575-9840</span></div></footer>
+           </article> : null}
+ 
+-          <div className="results-heading"><div><div className="eyebrow"><span>✓</span> Your PDM 360° screening is ready</div><h1>{orgName}</h1><p>{orgType === "church" ? "PDM 360° Faith & Ministry" : orgType === "organization" ? "PDM 360° Organization" : "PDM 360° Non-Profit"} Visibility Report · {city.trim()} · {communityProfile.label} · {serviceReachProfile.label}</p><small className="screening-save-note">Provisional legacy calculation. Public evidence and identity still need verification.</small>{screeningSaveState === "saved" && <><small className="screening-save-note">Saved privately to your account</small><Link className="secondary-button" href={`/organization?report=${encodeURIComponent(screeningIdRef.current||" ")}&view=full`}>Open full saved report</Link>{<Link className="primary-button" href={`/organization?report=${encodeURIComponent(screeningIdRef.current||" ")}&view=roadmap`}>View your tailored visibility roadmap</Link>}</>}{screeningSaveState === "saving" && <small className="screening-save-note" role="status">Saving screening…</small>}{screeningSaveState === "error" && <span role="alert">The screening was not saved. <button type="button" onClick={() => void retryPendingReport()}>Retry save</button></span>}</div><div className="results-actions no-print"><button type="button" className="secondary-button" onClick={reviseScreening}>Edit links &amp; recalculate</button>{reportAccess.canViewFullReport ? <><button type="button" className="secondary-button" onClick={() => window.print()}>Save / print full report</button><button type="button" className="primary-button" onClick={copyReport}>{copied ? "Copied!" : "Copy full report"} <ArrowIcon /></button></> : <a className="primary-button" href="#roadmap-access">Request complete Roadmap <ArrowIcon /></a>}</div></div>
++          <div className="results-heading"><div><div className="eyebrow"><span>✓</span> Your PDM 360° screening is ready</div><h1>{orgName}</h1><p>{orgType === "church" ? "PDM 360° Faith & Ministry" : orgType === "organization" ? "PDM 360° Organization" : "PDM 360° Non-Profit"} Visibility Report · {city.trim()} · {communityProfile.label} · {serviceReachProfile.label}</p><small className="screening-save-note">Provisional legacy calculation. Public evidence and identity still need verification.</small>{screeningSaveState === "saved" && <><small className="screening-save-note">{savedReport ? `Saved screening · ${new Date(savedReport.createdAt).toLocaleString()} · ${savedReport.id}` : "Saved privately to your account"}</small><Link className="secondary-button" href={shareToken ? `/shared/report/${shareToken}` : `/organization?report=${encodeURIComponent(savedReport?.id||screeningIdRef.current||" ")}&view=full`}>Open full saved report</Link>{<Link className="primary-button" href={shareToken ? `/shared/report/${shareToken}/roadmap` : `/organization/roadmap/${encodeURIComponent(savedReport?.id||screeningIdRef.current||" ")}`}>View your tailored visibility roadmap</Link>}</>}{screeningSaveState === "saving" && <small className="screening-save-note" role="status">Saving screening…</small>}{screeningSaveState === "error" && <span role="alert">The screening was not saved. <button type="button" onClick={() => void retryPendingReport()}>Retry save</button></span>}</div><div className="results-actions no-print">{!shareToken && <button type="button" className="secondary-button" onClick={reviseScreening}>Edit links &amp; recalculate</button>}{!shareToken && screeningSaveState === "saved" && <ShareReportButton reportId={savedReport?.id||screeningIdRef.current||""}/> }{reportAccess.canViewFullReport ? <><button type="button" className="secondary-button" onClick={() => window.print()}>Save / print full report</button><button type="button" className="primary-button" onClick={copyReport}>{copied ? "Copied!" : "Copy full report"} <ArrowIcon /></button></> : <a className="primary-button" href="#roadmap-access">Request complete Roadmap <ArrowIcon /></a>}</div></div>
+           {reportAccess.isAdmin ? <aside className="admin-report-access no-print"><div><span>Purpose Driven Media owner view</span><strong>Provisional report access</strong><small>Owner access lets you inspect this saved screening. Client Roadmap payment and entitlement are not connected yet.</small></div></aside> : null}
+           <nav className="report-nav no-print" aria-label="Report sections"><a href="#summary">Free snapshot</a><a href="#opportunity">Opportunity</a>{reportAccess.canViewFullReport ? <><a href="#reputation">Outside coverage</a><a href="#rubric">Scoring rubric</a><a href="#footprint">Submitted links</a><a href="#priorities">Conversation</a><a href="#plans">Plans</a><a href="#details">Evidence</a></> : <a href="#roadmap-access">Unlock full Roadmap</a>}</nav>
+           {isLifePointReferenceSet && <aside className="lifepoint-report-context"><strong>Presenting LifePoint today?</strong><span>This automated result is a provisional legacy calculation. The separate, hand-reviewed LifePoint report records its evidence and scoring as of August 27, 2026.</span><Link href="/organization/reports/lifepoint">Open the reviewed LifePoint report →</Link></aside>}
+@@ -2267,12 +2305,12 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+ 
+           <section className="footprint-section" id="footprint">
+             <div className="section-heading section-heading--inside"><div><span>Submitted-link visibility ranking</span><h2>See what is strongest today—and where visibility can improve.</h2></div><p>Every submitted link is compared using its public availability, update rhythm, verified evidence, ministry type, community setting, and selected service area.</p></div>
+-            <div className="screening-geographic-map">                {mapDetails
+-                  ? <LiveCommunityMap lat={mapDetails.lat} lon={mapDetails.lon} zoom={mapDetails.zoom} landmarks={mappedLandmarks} label={resolvedAreaLabel} boundary={communityData?.boundaryGeoJson} />
+-                  : <div className="community-map-unavailable"><span>Location data not loaded</span><strong>{resolvedAreaLabel}</strong><p>{locationData?.reason || "The submitted service area could not be resolved to a live map location. No substitute map is shown."}</p><a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(resolvedAreaLabel)}`} target="_blank" rel="noreferrer">Search OpenStreetMap ↗</a></div>}
+-            </div>
+             <div className="community-visual-grid">
+               <div className={`community-scene community-scene--${communityContext}${mapDetails ? " has-live-map" : " is-map-unavailable"}`}>
++                {mapDetails
++                  ? <LiveCommunityMap lat={mapDetails.lat} lon={mapDetails.lon} zoom={mapDetails.zoom} landmarks={mappedLandmarks} label={resolvedAreaLabel} boundary={communityData?.boundaryGeoJson} />
++                  : <div className="community-map-unavailable"><span>Location data not loaded</span><strong>{resolvedAreaLabel}</strong><p>{locationData?.reason || "The submitted service area could not be resolved to a live map location. No substitute map is shown."}</p><a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(resolvedAreaLabel)}`} target="_blank" rel="noreferrer">Search OpenStreetMap ↗</a></div>}
++                <div className="community-map-body">
+                 <div className="community-scene__wash" />
+                 <div className="map-future-grid" aria-hidden="true" />
+                 <div className="map-radar-sweep" aria-hidden="true" />
+@@ -2293,6 +2331,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+                 {mapDetails
+                   ? <div className="map-source-links"><span>Live tiles © OpenFreeMap · data © OpenStreetMap contributors</span><a href={mapDetails.openUrl} target="_blank" rel="noreferrer">OpenStreetMap</a><a href={mapDetails.googleMapUrl} target="_blank" rel="noreferrer">Google Maps</a><a href={mapDetails.appleMapUrl} target="_blank" rel="noreferrer">Apple Maps</a></div>
+                   : <div className="map-unavailable-note"><strong>Location lookup unavailable.</strong><span>No substitute map or location estimate is being displayed.</span></div>}
++                </div>
+               </div>
+               <aside className="community-readout">
+                 <div className="readout-stats readout-stats--leaders"><div className="readout-stat"><span>Strongest today</span><strong>{strongestCurrentMedia?.label || "—"}</strong><small>{strongestCurrentMedia?.currentStrength ?? 0}/100 verified strength</small></div><div className="readout-stat readout-stat--landmarks"><span>Highest visibility potential</span><strong>{highestPotentialMedia?.label || "—"}</strong><small>{highestPotentialMedia?.potentialVisibility ?? 0}/100 modeled opportunity</small></div></div>
+@@ -2308,7 +2347,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+               {communityData?.available ? <>
+                 <div className="community-metric-grid">{communityMetricCards.map((item) => <article key={item.key}><span>{item.label}</span><strong>{item.display}</strong><small>{item.note}</small></article>)}</div>
+                 <div className="community-guidance"><div><span>Map-informed planning signals</span><h4>What this community context suggests</h4><p>These recommendations help interpret the report. They do not add or remove visibility points.</p></div><ol>{communityGuidance.map((item, index) => <li key={item}><b>{index + 1}</b><span>{item}</span></li>)}</ol></div>
+-              </> : <div className={`community-data-status${communityRefreshState === "loading" ? " is-loading" : ""}`} aria-live="polite"><strong>{communityRefreshState === "loading" ? "Connecting to live Census sources…" : "The official profile needs a fresh connection."}</strong><p>{communityRefreshState === "loading" ? "The report will fill this section automatically when the verified geography and ACS estimates arrive." : "Use the button below to reload the mapped location, Census boundary, and community statistics without rerunning the full screening."}</p><button type="button" onClick={() => void refreshLiveCommunity()} disabled={communityRefreshState === "loading"}>{communityRefreshState === "loading" ? "Loading live data…" : "Reload live Census data"}</button></div>}
++              </> : <div className={`community-data-status${communityRefreshState === "loading" ? " is-loading" : ""}`} aria-live="polite"><strong>{communityRefreshState === "loading" ? "Connecting to live Census sources…" : "The official profile needs a fresh connection."}</strong><p>{communityRefreshState === "loading" ? "The report will fill this section automatically when the verified geography and ACS estimates arrive." : "Use the button below to reload the mapped location, Census boundary, and community statistics without rerunning the full screening."}</p><button type="button" onClick={() => void refreshLiveCommunity()} disabled={Boolean(savedReport) || communityRefreshState === "loading"}>{savedReport ? "Start a new screening to refresh this snapshot" : communityRefreshState === "loading" ? "Loading live data…" : "Reload live Census data"}</button></div>}
+               <footer className="community-data-sources"><span><strong>Sources:</strong> {communityData?.source || "U.S. Census Bureau ACS"}{communityData?.boundarySource ? ` · ${communityData.boundarySource}` : ""}. {communityData?.sourceDetail ? `${communityData.sourceDetail}. ` : ""}ACS estimates are directional and include sampling uncertainty.</span><div>{communityData?.profileUrl ? <a href={communityData.profileUrl} target="_blank" rel="noreferrer">Community profile ↗</a> : null}<a href="https://www.census.gov/data/developers/data-sets/acs-5year/2024.html" target="_blank" rel="noreferrer">ACS methodology ↗</a><a href="https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_restmapservice.html" target="_blank" rel="noreferrer">Census boundaries ↗</a>{mapDetails ? <a href={mapDetails.openUrl} target="_blank" rel="noreferrer">Live map ↗</a> : null}</div></footer>
+             </section>
+           </section>
+@@ -2337,9 +2376,9 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+               <article className="momentum-card momentum-card--mentions">
+                 <header><div className="momentum-platform-mark">◎</div><div><span>{publicEvidence?.available ? "Live public-index scan" : "Live scan limited"}</span><h3>Third-party mentions & community proof</h3></div></header>
+                 <div className="mention-signal"><strong>{publicEvidence?.matchedCount ?? 0} relevant outside reference{publicEvidence?.matchedCount === 1 ? "" : "s"} matched.</strong><p>{publicEvidenceReading}</p></div>
+-                {publicEvidence?.searchNames.length ? <div className="mention-name-chips"><span>Names searched</span>{publicEvidence.searchNames.map((name) => <b key={name}>{name}</b>)}</div> : null}
++                {publicEvidence?.searchNames?.length ? <div className="mention-name-chips"><span>Names searched</span>{publicEvidence.searchNames.map((name) => <b key={name}>{name}</b>)}</div> : null}
+                 {publicEvidence ? <div className="mention-tone-row"><span><b>{publicEvidence.positiveMentionCount}</b> supportive</span><span><b>{publicEvidence.criticalMentionCount}</b> critical</span><span><b>{publicEvidence.mixedMentionCount}</b> mixed</span><span><b>{publicEvidence.neutralMentionCount}</b> informational</span><span><b>{publicEvidence.socialCount}</b> public social</span></div> : null}
+-                {publicEvidence?.results.length ? <div className="public-evidence-list">{publicEvidence.results.slice(0, 12).map((item) => <a href={item.url} target="_blank" rel="noreferrer" key={`${item.sourceName}-${item.title}`}><span><b>{item.kind} · {item.owned ? "owned" : item.sentiment === "critical" ? "critical" : item.sentiment === "positive" ? "supportive" : item.sentiment === "mixed" ? "mixed" : "informational"}</b><small>{item.sourceName}{item.publishedAt ? ` · ${formatDate(item.publishedAt)}` : ""}</small></span><strong>{item.title}</strong><em>Open source ↗</em></a>)}</div> : <p className="public-evidence-empty">No confident outside match was stored this time. That means unknown—not that nobody has mentioned the organization. Use the live cross-check links below for additional context.</p>}
++                {publicEvidence?.results?.length ? <div className="public-evidence-list">{publicEvidence.results.slice(0, 12).map((item) => <a href={item.url} target="_blank" rel="noreferrer" key={`${item.sourceName}-${item.title}`}><span><b>{item.kind} · {item.owned ? "owned" : item.sentiment === "critical" ? "critical" : item.sentiment === "positive" ? "supportive" : item.sentiment === "mixed" ? "mixed" : "informational"}</b><small>{item.sourceName}{item.publishedAt ? ` · ${formatDate(item.publishedAt)}` : ""}</small></span><strong>{item.title}</strong><em>Open source ↗</em></a>)}</div> : <p className="public-evidence-empty">No confident outside match was stored this time. That means unknown—not that nobody has mentioned the organization. Use the live cross-check links below for additional context.</p>}
+                 <FacebookMentions snapshot={publicEvidence?.facebookMentions} />
+                 <div className="mention-links no-print"><a href={googleMentionUrl} target="_blank" rel="noreferrer"><span>Google web</span><strong>Check mentions ↗</strong></a><a href={googleNewsUrl} target="_blank" rel="noreferrer"><span>Google News</span><strong>Check coverage ↗</strong></a><a href={bingMentionUrl} target="_blank" rel="noreferrer"><span>Bing web</span><strong>Cross-check ↗</strong></a></div>
+                 <div className="momentum-callout momentum-callout--boundary"><span>How this affects the score</span><p>Relevant public news, partner, community, denominational, and directory results contribute to search findability. Review snippets are displayed separately and do not change the score; overall reputation is never inferred from a limited sample.</p></div>
+@@ -2365,7 +2404,7 @@ export function ScreeningExperience({ forcedOrgType }: { forcedOrgType?: OrgType
+           <details className="submitted-links evidence-details"><summary><span>Submitted evidence</span><strong>Public links reviewed</strong></summary><div className="submitted-link-list">{activeLinks.map((key) => <a key={key} href={normalizeLink(links[key])} target="_blank" rel="noreferrer"><span>{linkLabels[key]}</span><strong>Open ↗</strong></a>)}</div></details>
+           {referenceLinks.length ? <details className="submitted-links evidence-details" open><summary><span>Complete research trail</span><strong>{referenceLinks.length} relevant first- and third-party links</strong></summary><div className="reference-report-list">{referenceLinks.map((item) => <a key={item.url} href={item.url} target="_blank" rel="noreferrer"><b>{item.kind === "owned" ? "Owned channel" : "Independent source"}</b><span><strong>{item.label}</strong><small>{item.note}</small></span><em>Open ↗</em></a>)}</div></details> : null}
+           <section className="contact-card"><div className="contact-card__mark"><BrandMark /></div><div className="contact-card__copy"><span>Your next step with Purpose Driven Media</span><h2>Want to walk through these findings together?</h2><p>Book a complimentary 20-minute screening review. We will celebrate what is working, verify the top three opportunities, and identify the smallest sensible next step—plain language, no pressure.</p></div><div className="contact-actions no-print"><a className="contact-button contact-button--primary" href="/schedule?type=organization" onClick={() => trackFunnel("consultation_requested", { channel: "schedule" })}><span><small>Complimentary screening review</small>Request a review</span></a><a className="contact-button" href={planHrefFor(recommendedPackage)} onClick={() => trackFunnel("consultation_requested", { channel: "email" })}><MailIcon /><span><small>Discuss {recommendedPackage.name}</small>Email Purpose Driven Media</span></a><a className="contact-button" href="tel:+16365759840"><PhoneIcon /><span><small>Call Purpose Driven Media</small>(636) 575-9840</span></a><a className="contact-text-link" href="/organization/profile">Sign in to keep your screening history →</a></div></section>
+-          <div className="report-footer"><p><strong>About this report:</strong> Context-adjusted directional screening only. It evaluates submitted public evidence and does not penalize every absent social account. Google Maps links are reference tools; listings were not scraped or scored. Review labels describe only visible public snippet language and require source verification. The app cannot verify private analytics, conversions, security, complete accessibility conformance, doctrine, organizational health, or spiritual faithfulness.</p><button type="button" className="text-button no-print" onClick={reset}>Start another deep dive</button></div>
++          <div className="report-footer"><p><strong>About this report:</strong> Context-adjusted directional screening only. It evaluates submitted public evidence and does not penalize every absent social account. Google Maps links are reference tools; listings were not scraped or scored. Review labels describe only visible public snippet language and require source verification. The app cannot verify private analytics, conversions, security, complete accessibility conformance, doctrine, organizational health, or spiritual faithfulness.</p>{!shareToken && <button type="button" className="text-button no-print" onClick={reset}>Start another deep dive</button>}</div>
+           <ReportAssistant context={reportAssistantContext} scheduleHref="/schedule?type=organization" />
+           </> : <section className="roadmap-access-gate no-print" id="roadmap-access" aria-labelledby="roadmap-access-title">
+             <div className="roadmap-access-gate__eyebrow"><span>Complete analysis reserved</span><strong>Visibility Roadmap</strong></div>
+diff --git a/modules/organization/app/reports/lifepoint/page.tsx b/modules/organization/app/reports/lifepoint/page.tsx
+index ae2cb45..322705b 100644
+--- a/modules/organization/app/reports/lifepoint/page.tsx
++++ b/modules/organization/app/reports/lifepoint/page.tsx
+@@ -1,3 +1,4 @@
++import {ShareReportButton} from "@/components/ShareReportButton";
+ import Link from "next/link";
+ import { PdmHeader } from "../../../components/PdmHeader";
+ import { ReportAssistant } from "../../../components/ReportAssistant";
+@@ -172,7 +173,7 @@ export default function LifePointReportPage() {
+           <p>PDM 360° Faith &amp; Ministry Visibility Report · Chillicothe, Missouri · Small-town, county-level service area · Validated August 27, 2026</p>
+           <small className="screening-save-note">Hand-reviewed snapshot · Validated score 92/100 as of August 27, 2026</small>
+           </div>
+-          <ReportActions />
++          <ReportActions /><ShareReportButton publicPath="/organization/reports/lifepoint"/>
+         </div>
+         <nav className="report-nav no-print" aria-label="Report sections"><a href="#summary">At a glance</a><a href="#rubric">Scoring rubric</a><a href="#website-analysis">Website analysis</a><a href="/organization/reports/lifepoint/map">Explore 3-D map</a><a href="#reputation">Outside coverage</a><a href="#facilities">Facility check</a><a href="#plan">30-day plan</a><a href="#sources">Public links</a><a href="#conversation">Conversation</a></nav>
+ 
+@@ -270,7 +271,7 @@ export default function LifePointReportPage() {
+         </div>
+       </section>
+ 
+-      <ReportAssistant context={{ organizationName: "LifePoint Church of Chillicothe", reportLabel: "PDM 360° Faith & Ministry Visibility Report", totalScore: 92, potentialScore: 97, categories: [], strengths: [], gaps: [], actions: [], evidence: [], limitations: [] }} scheduleHref="/schedule?type=church&organization=LifePoint%20Church%20of%20Chillicothe&report=lifepoint-curated-2026" />
++
+ 
+       <section className="curated-report__cta" id="conversation">
+         <div><span className="curated-report__eyebrow">Need a human review?</span><h2>Walk through the findings with Purpose Driven Media.</h2><p>Use the meeting to verify facility labels, choose the first three corrections, and decide what LifePoint&apos;s team can own internally.</p><ol><li><b>1</b><span>Review this report</span></li><li><b>2</b><span>Confirm one service scope and exact price</span></li><li><b>3</b><span>Receive and pay the PDM invoice</span></li><li><b>4</b><span>Schedule the kickoff</span></li></ol></div>
+@@ -278,6 +279,7 @@ export default function LifePointReportPage() {
+       </section>
+ 
+       <p className="curated-report__disclaimer">Directional public score - not account analytics or a ministry-health rating. This screening evaluates public discoverability, clarity, visitor readiness, consistency, and visible freshness. Traffic, conversion behavior, Search Console data, and private social analytics require account access.</p>
++      <ReportAssistant context={{ organizationName: "LifePoint Church of Chillicothe", reportLabel: "PDM 360° Faith & Ministry Visibility Report", totalScore: 92, potentialScore: 97, categories: [], strengths: [], gaps: [], actions: [], evidence: [], limitations: [] }} scheduleHref="/schedule?type=church&organization=LifePoint%20Church%20of%20Chillicothe&report=lifepoint-curated-2026" />
+       <footer className="curated-report__footer"><span>Purpose Driven Media Group LLC © 2026</span><Link href="/organization?preset=lifepoint#screening">Prepare an evidence refresh</Link></footer>
+       </section>
+     </main>
+diff --git a/modules/organization/components/SavedOrganizationReport.tsx b/modules/organization/components/SavedOrganizationReport.tsx
+index f514ffe..22b3300 100644
+--- a/modules/organization/components/SavedOrganizationReport.tsx
++++ b/modules/organization/components/SavedOrganizationReport.tsx
+@@ -84,7 +84,7 @@ export function SavedOrganizationReport({ screening, canViewFullReport, roadmap=
+   const label = screening.organizationType === "nonprofit" ? "Nonprofit" : screening.organizationType === "church" ? "Faith & Ministry" : "Organization";
+   return <section className="results-wrap unified-results" id="screening">
+     <div className="results-heading"><div><div className="eyebrow"><span>✓</span> {canViewFullReport ? "Full saved PDM 360° report" : "Saved PDM 360° screening"}</div><h1>{screening.organizationName}</h1><p>{label} Visibility Report · {screening.resolvedLocation || screening.submittedLocation} · {date}</p><small className="screening-save-note">Provisional client-calculated snapshot · legacy five-area rubric; evidence and score have not passed the verified visibility-v1 review.</small></div><div className="results-actions no-print"><Link className="secondary-button" href={`/organization?rerun=${encodeURIComponent(screening.id)}#screening`}>Start a new dated screening</Link><button type="button" className="primary-button" onClick={() => window.print()}>Print saved report</button></div></div>
+-    <nav className="report-nav no-print" aria-label="Report sections"><a href="#saved-score">Recorded score</a><a href="#saved-categories">Recorded categories</a><a href="#saved-sources">Outside references</a><a href="#saved-website">Website analysis</a><a href="#saved-community">Census context</a><a href="#service-area">3-D map</a>{<Link href={`/organization?report=${encodeURIComponent(screening.id)}&view=roadmap`}>View your tailored visibility roadmap</Link>}</nav>
++    <nav className="report-nav no-print" aria-label="Report sections"><a href="#saved-score">Recorded score</a><a href="#saved-categories">Recorded categories</a><a href="#saved-sources">Outside references</a><a href="#saved-website">Website analysis</a><a href="#saved-community">Census context</a><a href="#service-area">3-D map</a>{<Link href={`/organization/roadmap/${encodeURIComponent(screening.id)}`}>View your tailored visibility roadmap</Link>}</nav>
+     <p className="privacy-note">Report reference: {screening.id}{screening.parentReportId?` · Rerun of ${screening.parentReportId}`:''}. Reviewed presentation reports and automated screenings are separate dated results.</p>
+     <section className="glance-report" id="saved-score"><div className="glance-report__title"><div><span>ORIGINAL SCREENING RESULT</span><h2>{screening.organizationName}</h2><p>Recorded {date}; a fresh scan creates a separate report.</p></div><strong>{screening.currentScore}/100</strong></div><p className="glance-summary">This score is the one saved with this screening. Public pages and listings may have changed since then. Reopen source links to check their current state.</p></section>
+     <section className="glance-report" id="saved-categories"><div className="glance-report__title"><div><span>LEGACY FIVE-AREA RUBRIC</span><h2>Recorded category scores</h2><p>These values were saved with the original score and have not been recalculated.</p></div></div>{categories.length ? <div className="admin-dimensions">{categories.map((item, index) => <div key={`${item.category}-${index}`}><span>{item.category}</span><strong>{item.points}/20</strong></div>)}</div> : <p>Category details were not recorded for this report.</p>}</section>
+diff --git a/supabase/migrations/20261001_report_share_links.sql b/supabase/migrations/20261001_report_share_links.sql
+new file mode 100644
+index 0000000..c002991
+--- /dev/null
++++ b/supabase/migrations/20261001_report_share_links.sql
+@@ -0,0 +1,41 @@
++-- Explicit, expiring read-only report capabilities. Existing report RLS stays intact.
++create schema if not exists pdm_report_sharing;
++revoke all on schema pdm_report_sharing from public;
++grant usage on schema pdm_report_sharing to anon, authenticated;
++create table pdm_report_sharing.links (
++ token_hash text primary key check (token_hash ~ '^[0-9a-f]{64}$'),
++ report_id uuid not null references public.site_screening_reports(id) on delete cascade,
++ created_by uuid not null default auth.uid(),
++ created_at timestamptz not null default now(),
++ expires_at timestamptz not null default now()+interval '30 days',
++ revoked_at timestamptz
++);
++alter table pdm_report_sharing.links enable row level security;
++grant insert,select on pdm_report_sharing.links to authenticated;
++grant update(revoked_at) on pdm_report_sharing.links to authenticated;
++create policy share_create on pdm_report_sharing.links for insert to authenticated with check (
++ created_by=auth.uid() and expires_at<=now()+interval '30 days' and revoked_at is null and
++ exists(select 1 from public.site_screening_reports r where r.id=report_id and r.deleted_at is null and (r.created_by=auth.uid() or public.site_platform_admin_access()))
++);
++create policy share_read on pdm_report_sharing.links for select to authenticated using(created_by=auth.uid());
++create policy share_revoke on pdm_report_sharing.links for update to authenticated using(created_by=auth.uid()) with check(created_by=auth.uid());
++create function public.site_create_report_share(p_report_id uuid,p_token_hash text) returns timestamptz
++ language sql security invoker set search_path='' as $$
++ insert into pdm_report_sharing.links(token_hash,report_id) values(p_token_hash,p_report_id) returning expires_at;
++$$;
++create function public.site_revoke_report_share(p_token_hash text) returns boolean
++ language sql security invoker set search_path='' as $$
++ with revoked as(update pdm_report_sharing.links set revoked_at=now() where token_hash=p_token_hash returning 1) select exists(select 1 from revoked);
++$$;
++create function pdm_report_sharing.read_report(p_token text) returns jsonb
++ language sql stable security definer set search_path='' as $$
++ select jsonb_build_object('id',r.id,'screening_type',r.screening_type,'organization_name',r.organization_name,'display_score',r.display_score,'created_at',r.created_at,'report_snapshot',r.report_snapshot)
++ from pdm_report_sharing.links l join public.site_screening_reports r on r.id=l.report_id
++ where p_token ~ '^[0-9a-f]{64}$' and l.token_hash=encode(extensions.digest(p_token,'sha256'),'hex')
++ and l.revoked_at is null and l.expires_at>now() and r.deleted_at is null;
++$$;
++create function public.site_read_shared_report(p_token text) returns jsonb
++ language sql stable security invoker set search_path='' as $$select pdm_report_sharing.read_report(p_token);$$;
++revoke all on function public.site_create_report_share(uuid,text),public.site_revoke_report_share(text),public.site_read_shared_report(text),pdm_report_sharing.read_report(text) from public;
++grant execute on function public.site_create_report_share(uuid,text),public.site_revoke_report_share(text) to authenticated;
++grant execute on function public.site_read_shared_report(text),pdm_report_sharing.read_report(text) to anon,authenticated;
+diff --git a/tests/business-roadmap.test.mjs b/tests/business-roadmap.test.mjs
+new file mode 100644
+index 0000000..e243d41
+--- /dev/null
++++ b/tests/business-roadmap.test.mjs
+@@ -0,0 +1,16 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import vm from 'node:vm';
++import {build} from 'esbuild';
++import {readFile} from 'node:fs/promises';
++const compiled=await build({entryPoints:['lib/business-roadmap.ts'],bundle:true,write:false,platform:'node',format:'cjs'});
++const mod={exports:{}};vm.runInNewContext(compiled.outputFiles[0].text,{module:mod,exports:mod.exports,URL});
++test('separate business roadmap retains observed findings and excludes unknown/ambiguous gaps',()=>{
++ const screening={totalScore:48,evidenceJson:JSON.stringify([{category:'clarity',status:'warning',assessment:'observed',detail:'Service area absent in reviewed HTML',source:'https://fixture.example/service'},{category:'trust',status:'warning',assessment:'unknown',detail:'Unretrieved reviews',source:'javascript:alert(1)'}]),recommendationsJson:JSON.stringify([{category:'clarity',title:'State the service area',action:'List the towns served'},{category:'trust',title:'Invent reviews',action:'Invent ratings'}])};
++ const plan=mod.exports.businessRoadmap(screening);
++ assert.equal(plan.length,2);assert.equal(plan[0].title,'State the service area');assert.equal(plan[0].sources[0],'https://fixture.example/service');assert.doesNotMatch(JSON.stringify(plan),/Invent|javascript:/);assert.match(plan[1].basis,/48\/100/);
++});
++test('roadmap links target separate authorized pages rather than anchors or same-page queries',async()=>{
++ const [organization,business,orgRoute,businessRoute]=await Promise.all(['modules/organization/app/page.tsx','modules/business/components/ReportView.tsx','app/organization/roadmap/[id]/page.tsx','app/business/report/[id]/roadmap/page.tsx'].map(path=>readFile(path,'utf8')));
++ assert.match(organization,/`\/organization\/roadmap\//);assert.match(business,/\/business\/report\/\$\{encodeURIComponent\(screening.publicId\)\}\/roadmap/);assert.match(orgRoute,/SupabaseOrganizationRoadmap/);assert.match(businessRoute,/SupabaseBusinessReport reportId=\{id\} roadmap/);
++});
+diff --git a/tests/report-sharing.test.mjs b/tests/report-sharing.test.mjs
+new file mode 100644
+index 0000000..28186c8
+--- /dev/null
++++ b/tests/report-sharing.test.mjs
+@@ -0,0 +1,19 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import {readFile} from 'node:fs/promises';
++import {transform} from 'esbuild';
++import vm from 'node:vm';
++async function route(path,mocks){const source=await readFile(path,'utf8');const compiled=await transform(source,{loader:'ts',format:'cjs'});const mod={exports:{}};vm.runInNewContext(compiled.code,{module:mod,exports:mod.exports,Response,URL,crypto:globalThis.crypto,require:()=>mocks});return mod.exports;}
++const json=(data,status=200)=>Response.json(data,{status});
++test('sharing requires authenticated report access and does not disclose a token on denial',async()=>{
++ let calls=0;const mocks={sameOrigin:()=>true,reportActor:async()=>null,privateJson:json,reportShareRpc:async()=>{calls++;}};
++ const api=await route('app/api/report-share/route.ts',mocks);
++ assert.equal((await api.POST(new Request('https://fixture.example/api/report-share',{method:'POST',body:'{}'}))).status,401);
++ mocks.reportActor=async()=>({authorization:'Bearer fixture'});mocks.getSiteReport=async()=>null;
++ assert.equal((await api.POST(new Request('https://fixture.example/api/report-share',{method:'POST',body:'{"reportId":"other"}'}))).status,404);assert.equal(calls,0);
++});
++test('shared reader denies malformed, nonexistent or expired capability without falling back to intake',async()=>{
++ let calls=0;const api=await route('app/api/shared-report/route.ts',{privateJson:json,reportShareRpc:async()=>{calls++;return null;}});
++ assert.equal((await api.GET(new Request('https://fixture.example/api/shared-report?token=invalid'))).status,404);assert.equal(calls,0);
++ assert.equal((await api.GET(new Request(`https://fixture.example/api/shared-report?token=${'a'.repeat(64)}`))).status,404);assert.equal(calls,1);
++});
+diff --git a/tests/saved-organization-render.test.mjs b/tests/saved-organization-render.test.mjs
+index ce27145..88ba36a 100644
+--- a/tests/saved-organization-render.test.mjs
++++ b/tests/saved-organization-render.test.mjs
+@@ -87,7 +87,7 @@ test('every saved screening offers a report-specific roadmap without rescoring',
+  for(const organizationType of ['church','nonprofit','organization']){
+  const record={...screening,organizationType};
+  const html=renderToStaticMarkup(React.createElement(module.exports.SavedOrganizationReport,{screening:record,canViewFullReport:false}));
+- assert.match(html,/report=stored-report-12345&amp;view=roadmap/);
++ assert.match(html,/organization\/roadmap\/stored-report-12345/);
+  const roadmap=renderToStaticMarkup(React.createElement(module.exports.SavedOrganizationReport,{screening:record,canViewFullReport:false,roadmap:true}));
+  assert.match(roadmap,/Fixture Community/);assert.match(roadmap,/48\/100/);assert.match(roadmap,/Week 1/);assert.match(roadmap,/Review retrieval is unknown/);
+  }
+diff --git a/tests/screening-results-reopen.test.mjs b/tests/screening-results-reopen.test.mjs
+new file mode 100644
+index 0000000..7fe7756
+--- /dev/null
++++ b/tests/screening-results-reopen.test.mjs
+@@ -0,0 +1,56 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import vm from 'node:vm';
++import {readFile,writeFile,readdir} from 'node:fs/promises';
++import {createRequire} from 'node:module';
++import {transform} from 'esbuild';
++import React from 'react';
++import {renderToStaticMarkup} from 'react-dom/server';
++const require=createRequire(import.meta.url);
++const source=await readFile('modules/organization/app/page.tsx','utf8');
++const compiled=await transform(source+'\nexport {emptySignals};',{loader:'tsx',format:'cjs',jsx:'automatic'});
++let stateIndex=0,seed=[];
++const mod={exports:{}};
++vm.runInNewContext(compiled.code,{module:mod,exports:mod.exports,URL,URLSearchParams,Date,JSON,Number,Math,console,require(id){
++ if(id==='react/jsx-runtime')return require(id);
++ if(id==='react')return {...React,useState(initial){const index=stateIndex++;return React.useState(index<seed.length?seed[index]:initial);}};
++ if(id==='next/link')return ({href,children,...props})=>React.createElement('a',{href,...props},children);
++ if(id.includes('evidence-identity'))return require('../lib/evidence-identity.ts');
++ if(id.includes('pdm-fetch'))return {pdmFetch:()=>{throw new Error('Saved rendering must not fetch');}};
++ if(id.includes('save-screening-report'))return {readPendingReport:()=>null};
++ if(id.includes('supabase-browser'))return {getSupabaseBrowserClient:()=>{throw new Error('Server rendering must not access a session');}};
++ if(id.includes('ReportAssistant'))return {ReportAssistant:()=>React.createElement('section',{id:'pdm360-advisor'},'Advisor')};
++ return new Proxy({},{get:(_,key)=>()=>React.createElement('div',null,String(key))});
++}});
++const ids=['search','clarity','readiness','consistency','freshness'];
++const snapshot={id:'5213c469-eb68-4d19-ab37-6a3d8bab5ee8',organizationName:'LifePoint Fixture',organizationType:'church',submittedLocation:'Chillicothe, MO',resolvedLocation:'Chillicothe, MO',currentScore:74,potentialScore:92,createdAt:'2026-09-29T21:27:19Z',scoringSnapshot:{categoryScores:ids.map((id,i)=>({id,category:['Search findability','Website clarity','Visitor readiness','Listing consistency','Freshness & content'][i],points:[17,15,11,14,17][i],checkpoints:[{id:'recorded',label:'Recorded checkpoint',points:2,evidence:'Exact original evidence'}]}))}};
++function markup(type){
++ const links={website:'https://lifepoint-church.com/',google:'https://www.google.com/maps/search/?api=1&query=LifePoint',facebook:'',instagram:'',youtube:'',linkedin:'',tiktok:'',other:''};
++ const updates=Object.fromEntries(Object.keys(links).map(k=>[k,{recency:'week',frequency:'weekly'}]));
++ const analysis={reachable:true,pagesScanned:6,signals:mod.exports.emptySignals};
++ // Main component state, followed by normal local state for its child components.
++ seed=[Date.parse(snapshot.createdAt),'results',{...snapshot,organizationType:type},snapshot.organizationName,'',type,'Chillicothe, MO','small_town','county',links,updates,analysis,{found:true,lat:39.7948749,lon:-93.5532779,address:{city:'Chillicothe',state:'Missouri'}},null,{available:true,geographyName:'Livingston County',metrics:{population:14364}},'ready',null,null,[],null,null,'','',false,'saved',null,null,{isAdmin:true,canViewFullReport:true,reportAccess:'full',roadmapPaidAt:null},''];
++ stateIndex=0;
++ return renderToStaticMarkup(React.createElement(mod.exports.ScreeningExperience));
++}
++test('reopened screenings use the full interactive results UI and recorded scores for every organization sector',()=>{
++ for(const type of ['church','nonprofit','organization']){
++ const html=markup(type);
++ assert.match(html,/media-map-nodes/);assert.match(html,/map-channel-dock/);assert.match(html,/live-community-map__tools/);
++ assert.match(html,/Exact original evidence/);assert.match(html,/74/);assert.match(html,/Livingston County/);
++ assert.match(html,/organization\/roadmap\/5213c469-eb68-4d19-ab37-6a3d8bab5ee8/);
++ assert.doesNotMatch(html,/Full saved PDM 360|Recorded category scores/);
++ }
++});
++test('saved loader hydrates results instead of the condensed report without saving or automatic research',()=>{
++ assert.match(source,/setSavedReport\(screening\);\s*setView\("results"\)/);
++ assert.match(source,/if \(savedReport \|\| view !== "results" \|\| screeningSaveState !== "idle"\) return/);
++ assert.match(source,/if \(savedReport \|\| view !== "results" \|\| !city.trim\(\)/);
++ assert.doesNotMatch(source,/<SavedOrganizationReport/);
++});
++
++if(process.env.PDM_LAYOUT_FIXTURE){
++ const assets=await readdir('dist/client/assets');
++ const css=(await Promise.all(assets.filter(name=>name.endsWith('.css')).map(name=>readFile(`dist/client/assets/${name}`,'utf8')))).join('\n');
++ await writeFile('public/__qa-screening.html',`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body><div class="pdm-app pdm-organization-app">${markup('church')}</div></body></html>`);
++}
+diff --git a/tests/unified-report.test.mjs b/tests/unified-report.test.mjs
+index 9961529..1ffe0c5 100644
+--- a/tests/unified-report.test.mjs
++++ b/tests/unified-report.test.mjs
+@@ -12,7 +12,7 @@ test("all three screening sectors use the unified results surface", async () =>
+   ]);
+ 
+   assert.match(business, /report-page unified-results/);
+-  assert.match(sample, /<ReportView sample business=/);
++  assert.match(sample, /<View sample business=/);
+   assert.match(business, /Sample Report — fictional organization/);
+   assert.match(organization, /results-wrap unified-results/);
+ });
